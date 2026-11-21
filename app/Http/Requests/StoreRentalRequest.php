@@ -10,9 +10,6 @@ use Illuminate\Validation\Rule;
  */
 class StoreRentalRequest extends RentalOrderRequest
 {
-    /** Proof of payment image size limit in kilobytes (2 MB). */
-    private const MAX_PROOF_KB = 2048;
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -27,7 +24,7 @@ class StoreRentalRequest extends RentalOrderRequest
             ],
             'vehicle_brand_type' => ['required', 'string', 'max:100'],
             'garage_id' => ['required', 'integer', 'exists:garages,id'],
-            'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:'.self::MAX_PROOF_KB],
+            'payment_proof' => PaymentProof::RULES,
         ];
     }
 

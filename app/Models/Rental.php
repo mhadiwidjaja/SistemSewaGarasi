@@ -100,11 +100,29 @@ class Rental extends Model
     }
 
     /**
+     * Get the first day of an extension: the day after the current end date.
+     */
+    public function extensionStartDate(): CarbonImmutable
+    {
+        return $this->end_date->addDay();
+    }
+
+    /**
      * Get the status of this rental today (upcoming, active or finished).
      */
     public function status(): RentalStatus
     {
         return RentalStatus::forPeriod($this->start_date, $this->end_date, CarbonImmutable::today());
+    }
+
+    /**
+     * Limit the query to rentals whose period includes the given day.
+     *
+     * @param  Builder<Rental>  $query
+     */
+    public function scopeActiveOn(Builder $query, CarbonImmutable $date): void
+    {
+        $query->overlapping($date, $date);
     }
 
     /**

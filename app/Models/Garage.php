@@ -80,9 +80,7 @@ class Garage extends Model
      */
     public function currentRental(): HasOne
     {
-        $today = CarbonImmutable::today();
-
-        return $this->hasOne(Rental::class)->overlapping($today, $today);
+        return $this->hasOne(Rental::class)->activeOn(CarbonImmutable::today());
     }
 
     /**

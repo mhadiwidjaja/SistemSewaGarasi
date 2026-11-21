@@ -109,5 +109,6 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/live-quote.js') }}"></script>
     <script src="{{ asset('js/rental-form.js') }}"></script>
 @endpush

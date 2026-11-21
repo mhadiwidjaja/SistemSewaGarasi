@@ -5,25 +5,31 @@
  * - Asks the server for a quote (end date, daily limit, available garages and their fees) whenever
  *   an input changes, so all dates and prices are calculated in one place: the server.
  * The vehicle rules come from the server through the form's data attributes.
+ * Requires live-quote.js.
  */
 (() => {
     const form = document.getElementById('rentalForm');
     const vehicleRules = JSON.parse(form.dataset.vehicleRules);
     const garageOptions = document.getElementById('garageOptions');
     const garageMessage = document.getElementById('garageMessage');
-    const QUOTE_DELAY_MS = 250;
+    const { toggleFields, showMaxDays } = window.LiveQuote;
 
     let selectedGarageId = form.dataset.oldGarageId;
-    let quoteTimer = null;
-    let quoteController = null;
 
     const checkedValue = (name) => form.querySelector(`input[name="${name}"]:checked`)?.value;
-
-    /** Show or hide a block of fields; hidden fields are disabled so they are not submitted. */
-    function toggleFields(container, visible) {
-        container.hidden = !visible;
-        container.querySelectorAll('input').forEach((input) => { input.disabled = !visible; });
-    }
+    const sendQuoteRequest = window.LiveQuote.requester(form, form.dataset.quoteUrl, {
+        onQuote(quote, isValid) {
+            showMaxDays(quote.max_days);
+            if (isValid) {
+                showQuote(quote);
+            } else {
+                showQuoteMessage(quote.message);
+            }
+        },
+        onFailure() {
+            showQuoteMessage('Gagal memuat garasi tersedia. Periksa koneksi lalu coba lagi.');
+        },
+    });
 
     function updateVehicleFields() {
         const rules = vehicleRules[checkedValue('vehicle_type')];
@@ -52,55 +58,12 @@
         toggleFields(document.getElementById('daysField'), checkedValue('rental_type') === form.dataset.dailyType);
     }
 
-    function quoteParameters() {
-        const parameters = new URLSearchParams();
-        new FormData(form).forEach((value, name) => {
-            if (typeof value === 'string' && name !== '_token') {
-                parameters.append(name, value);
-            }
-        });
-        return parameters;
-    }
-
     function requestQuote() {
-        clearTimeout(quoteTimer);
-        quoteTimer = setTimeout(fetchQuote, QUOTE_DELAY_MS);
-    }
-
-    async function fetchQuote() {
         if (!checkedValue('vehicle_type') || !checkedValue('garage_type')) {
             showQuoteMessage('Pilih jenis kendaraan dan jenis garasi untuk melihat garasi yang tersedia.');
             return;
         }
-
-        quoteController?.abort();
-        quoteController = new AbortController();
-
-        try {
-            const response = await fetch(`${form.dataset.quoteUrl}?${quoteParameters()}`, {
-                headers: { Accept: 'application/json' },
-                signal: quoteController.signal,
-            });
-            const quote = await response.json();
-            showMaxDays(quote.max_days);
-
-            if (response.ok) {
-                showQuote(quote);
-            } else {
-                showQuoteMessage(quote.message);
-            }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                showQuoteMessage('Gagal memuat garasi tersedia. Periksa koneksi lalu coba lagi.');
-            }
-        }
-    }
-
-    function showMaxDays(maxDays) {
-        if (maxDays) {
-            document.getElementById('days').max = maxDays;
-            document.getElementById('days_help').textContent = `Maksimal ${maxDays} hari.`;
-        }
+        sendQuoteRequest();
     }
 
     /** Show a message instead of the quote, e.g. a validation error, and clear the end date. */
@@ -117,6 +80,7 @@
         showFees(null);
     }
 
+    /** Show the end date and the available garages, keeping the chosen garage selected. */
     function showQuote(quote) {
         document.getElementById('endDate').textContent = quote.end_date;
 

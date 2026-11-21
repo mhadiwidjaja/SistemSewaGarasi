@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Enums\GarageType;
+use App\Enums\RentalType;
 use App\Enums\VehicleType;
 use App\Models\Garage;
 use App\Models\Rental;
+use App\Models\RentalExtension;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
@@ -14,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Garage availability and new rentals: enforces which vehicle fits which garage,
+ * Garage availability, new rentals and extensions: enforces which vehicle fits which garage,
  * that a garage is free for the whole period, and computes the fees.
  */
 class RentalService
@@ -81,6 +83,54 @@ class RentalService
     }
 
     /**
+     * Preview an extension. It starts the day after the current end date and follows the same
+     * rules as a new rental: daily up to (start month length − 1) days, or monthly for the
+     * length of its start month at 25 × the daily price. There is no charging fee.
+     *
+     * @param  int|null  $days  Number of days; required for daily, ignored for monthly.
+     * @return array{start_date: CarbonImmutable, end_date: CarbonImmutable, fee: int}
+     */
+    public function quoteExtension(Rental $rental, RentalType $type, ?int $days): array
+    {
+        $startDate = $rental->extensionStartDate();
+
+        return [
+            'start_date' => $startDate,
+            'end_date' => $this->calculator->endDate($type, $startDate, $days),
+            'fee' => $this->calculator->rentalFee($type, $rental->garage->daily_price, $days),
+        ];
+    }
+
+    /**
+     * Extend a rental: log the extension with its fee and proof, and move the rental's end date.
+     *
+     * The garage row is locked while checking that nobody booked it for the added days.
+     *
+     * @param  int|null  $days  Number of days; required for daily, ignored for monthly.
+     *
+     * @throws ValidationException When the garage is already booked in the added period.
+     */
+    public function extendRental(Rental $rental, RentalType $type, ?int $days, UploadedFile $paymentProof): RentalExtension
+    {
+        return DB::transaction(function () use ($rental, $type, $days, $paymentProof) {
+            $garage = Garage::lockForUpdate()->findOrFail($rental->garage_id);
+            $extension = $this->quoteExtension($rental, $type, $days);
+            $this->ensureGarageFreeForExtension($garage, $extension['start_date'], $extension['end_date']);
+
+            $record = $rental->extensions()->create([
+                'rental_type' => $type,
+                'previous_end_date' => $rental->end_date,
+                'new_end_date' => $extension['end_date'],
+                'fee' => $extension['fee'],
+                'payment_proof_path' => $paymentProof->store(self::PAYMENT_PROOF_FOLDER),
+            ]);
+            $rental->update(['end_date' => $extension['end_date']]);
+
+            return $record;
+        });
+    }
+
+    /**
      * Get the last day of the order's rental period.
      */
     private function endDate(RentalOrder $order): CarbonImmutable
@@ -125,6 +175,18 @@ class RentalService
         if (! $garage->isAvailableBetween($start, $end)) {
             throw ValidationException::withMessages([
                 'garage_id' => "Garasi {$garage->code} sudah tidak tersedia, silakan pilih garasi lain.",
+            ]);
+        }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function ensureGarageFreeForExtension(Garage $garage, CarbonImmutable $start, CarbonImmutable $end): void
+    {
+        if (! $garage->isAvailableBetween($start, $end)) {
+            throw ValidationException::withMessages([
+                'end_date' => "Garasi {$garage->code} sudah dipesan pada periode tersebut.",
             ]);
         }
     }
