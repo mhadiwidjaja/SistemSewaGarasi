@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\GarageController;
 use App\Http\Controllers\Admin\RegistrationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -34,4 +35,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
     Route::post('/registrations/{user}/approve', [RegistrationController::class, 'approve'])->name('registrations.approve');
     Route::post('/registrations/{user}/reject', [RegistrationController::class, 'reject'])->name('registrations.reject');
+
+    Route::get('/garages', [GarageController::class, 'index'])->name('garages.index');
+    Route::get('/garages/create', [GarageController::class, 'create'])->name('garages.create');
+    Route::post('/garages', [GarageController::class, 'store'])->name('garages.store');
 });

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A rentable garage with its own code (S001, C010, E003) and prices.
@@ -73,13 +74,15 @@ class Garage extends Model
     }
 
     /**
-     * Get the rental that occupies this garage on the given day, if any.
+     * Get the rental that occupies this garage today, if any ("used" status).
      *
-     * @param  CarbonImmutable  $date  The day to check.
+     * @return HasOne<Rental, $this>
      */
-    public function rentalOn(CarbonImmutable $date): ?Rental
+    public function currentRental(): HasOne
     {
-        return $this->rentals()->overlapping($date, $date)->first();
+        $today = CarbonImmutable::today();
+
+        return $this->hasOne(Rental::class)->overlapping($today, $today);
     }
 
     /**

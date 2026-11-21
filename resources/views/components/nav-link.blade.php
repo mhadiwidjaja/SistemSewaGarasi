@@ -1,7 +1,7 @@
-{{-- A navbar link that is highlighted while the user is on that route. --}}
-@props(['route'])
+{{-- A navbar link, highlighted while the current route matches `active` (defaults to the link's own route). --}}
+@props(['route', 'active' => null])
 
-@php($isActive = request()->routeIs($route))
+@php($isActive = request()->routeIs($active ?? $route))
 
 <li class="nav-item">
     <a href="{{ route($route) }}" @class(['nav-link', 'active fw-semibold' => $isActive])

@@ -5,9 +5,10 @@
     <label for="{{ $name }}" class="form-label">{{ $label }}</label>
     <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}"
            @if ($type !== 'password') value="{{ old($name) }}" @endif
+           @if ($help) aria-describedby="{{ $name }}_help" @endif
            {{ $attributes->class(['form-control', 'is-invalid' => $errors->has($name)]) }}>
     @if ($help)
-        <div class="form-text">{{ $help }}</div>
+        <div class="form-text" id="{{ $name }}_help">{{ $help }}</div>
     @endif
     @error($name)
         <div class="invalid-feedback">{{ $message }}</div>
