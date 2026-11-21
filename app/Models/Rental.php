@@ -90,15 +90,13 @@ class Rental extends Model
     /**
      * Get everything paid for this rental: rental fee, charging fee and all extension fees.
      *
-     * Uses a preloaded `withSum('extensions', 'fee')` value when available.
+     * Eager-load `extensions` when calling this on a list of rentals.
      *
      * @return int Amount in rupiah.
      */
     public function totalFee(): int
     {
-        $extensionFees = $this->extensions_sum_fee ?? $this->extensions->sum('fee');
-
-        return $this->rental_fee + $this->charging_fee + (int) $extensionFees;
+        return $this->rental_fee + $this->charging_fee + $this->extensions->sum('fee');
     }
 
     /**

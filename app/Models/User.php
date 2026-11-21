@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\RegistrationStatus;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -74,5 +75,23 @@ class User extends Authenticatable
     public function isApproved(): bool
     {
         return $this->status === RegistrationStatus::Approved;
+    }
+
+    /**
+     * Determine whether the user is a renter still waiting for verification.
+     */
+    public function isPendingRenter(): bool
+    {
+        return $this->role === UserRole::Renter && $this->status === RegistrationStatus::Pending;
+    }
+
+    /**
+     * Limit the query to renters still waiting for verification.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopePendingRenters(Builder $query): void
+    {
+        $query->where('role', UserRole::Renter)->where('status', RegistrationStatus::Pending);
     }
 }
