@@ -14,11 +14,19 @@
         ];
     @endphp
 
-    <h1 class="h3 mb-4">Riwayat Sewa</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="h3 mb-0">Riwayat Sewa</h1>
+        @if ($rentals->isNotEmpty())
+            <a href="{{ route('rentals.create') }}" class="btn btn-primary">+ Sewa Garasi Lagi</a>
+        @endif
+    </div>
 
     <div class="card shadow-sm">
         @if ($rentals->isEmpty())
-            <div class="card-body text-body-secondary">Anda belum memiliki riwayat sewa.</div>
+            <div class="card-body">
+                <p class="text-body-secondary">Anda belum memiliki riwayat sewa.</p>
+                <a href="{{ route('rentals.create') }}" class="btn btn-primary">Sewa Garasi</a>
+            </div>
         @else
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -37,7 +45,7 @@
                     <tbody>
                     @foreach ($rentals as $rental)
                         @php($status = $rental->status())
-                        <tr>
+                        <tr @class(['table-success' => $rental->id === session('newRentalId')])>
                             <td class="fw-semibold">{{ $rental->garage->code }}</td>
                             <td>{{ $rental->garage->type->label() }}</td>
                             <td>

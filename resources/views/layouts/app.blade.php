@@ -28,6 +28,7 @@
                         </x-nav-link>
                         <x-nav-link route="admin.garages.index" active="admin.garages.*">Garasi</x-nav-link>
                     @else
+                        <x-nav-link route="rentals.create">Sewa Garasi</x-nav-link>
                         <x-nav-link route="rentals.index">Riwayat Sewa</x-nav-link>
                     @endif
                 </ul>

@@ -29,6 +29,9 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 
 Route::middleware(['auth', 'role:renter'])->group(function () {
     Route::get('/rentals', [RentalController::class, 'index'])->name('rentals.index');
+    Route::get('/rentals/create', [RentalController::class, 'create'])->name('rentals.create');
+    Route::get('/rentals/quote', [RentalController::class, 'quote'])->name('rentals.quote');
+    Route::post('/rentals', [RentalController::class, 'store'])->name('rentals.store');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
