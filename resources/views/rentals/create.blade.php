@@ -65,7 +65,6 @@
                         <div>
                             <span class="form-label d-block">Tanggal Selesai</span>
                             <span class="fw-semibold" id="endDate" aria-live="polite">–</span>
-                            <div class="form-text">Dihitung otomatis.</div>
                         </div>
                     </div>
                 </section>

@@ -32,14 +32,15 @@ abstract class RentalOrderRequest extends FormRequest
         $vehicleType = $this->vehicleType();
 
         return [
-            'vehicle_type' => [$this->choiceRule(), Rule::enum(VehicleType::class)],
+            'vehicle_type' => [$this->completeOrderRule(), Rule::enum(VehicleType::class)],
             'battery_capacity_kwh' => [
                 Rule::excludeIf(! $vehicleType?->isElectric()),
-                'required', 'decimal:0,2', 'gt:0', 'max:'.self::MAX_BATTERY_KWH,
+                $this->completeOrderRule(), 'decimal:0,2', 'gt:0', 'max:'.self::MAX_BATTERY_KWH,
             ],
             'battery_left_kwh' => [
                 Rule::excludeIf(! $vehicleType?->isElectric()),
-                'required', 'decimal:0,2', 'min:0', 'lte:battery_capacity_kwh',
+                $this->completeOrderRule(), 'decimal:0,2', 'min:0',
+                Rule::when($this->filled('battery_capacity_kwh'), 'lte:battery_capacity_kwh'),
             ],
             'rental_type' => ['required', Rule::enum(RentalType::class)],
             'start_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today', 'before_or_equal:'.self::MAX_START_DATE],
@@ -48,7 +49,7 @@ abstract class RentalOrderRequest extends FormRequest
                 'required', 'integer', 'min:1', 'max:'.$this->maxDailyDays(),
             ],
             'garage_type' => [
-                $this->choiceRule(),
+                $this->completeOrderRule(),
                 Rule::enum(GarageType::class),
                 Rule::in(array_column($vehicleType?->allowedGarageTypes() ?? [], 'value')),
             ],
@@ -71,10 +72,10 @@ abstract class RentalOrderRequest extends FormRequest
     }
 
     /**
-     * Whether the vehicle type and garage type must be chosen. Saving needs them; the live quote
-     * overrides this so it can already show the rental period before they are chosen.
+     * Presence rule for the vehicle type, the battery data and the garage type. Saving needs them;
+     * the live quote overrides this so it can already show the period and the garages without them.
      */
-    protected function choiceRule(): string
+    protected function completeOrderRule(): string
     {
         return 'required';
     }

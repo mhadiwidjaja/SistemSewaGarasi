@@ -10,9 +10,10 @@ class QuoteRentalRequest extends RentalOrderRequest
     use RespondsWithQuoteErrors;
 
     /**
-     * The quote already shows the rental period while the vehicle and garage type are still empty.
+     * The quote already shows the rental period and the garages while vehicle type, battery data
+     * or garage type are still empty.
      */
-    protected function choiceRule(): string
+    protected function completeOrderRule(): string
     {
         return 'nullable';
     }

@@ -40,9 +40,10 @@ class RentalService
 
     /**
      * Preview an order: its end date and, once the vehicle and garage type are chosen,
-     * every available garage with the fees it would cost.
+     * every available garage with the fees it would cost. The charging fee and total are null
+     * while an electric car's battery data is still missing.
      *
-     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: int, total_fee: int}>|null}
+     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: ?int, total_fee: ?int}>|null}
      */
     public function quote(RentalOrder $order): array
     {
@@ -56,7 +57,9 @@ class RentalService
             ->map(function (Garage $garage) use ($order) {
                 $fees = $this->fees($garage, $order);
 
-                return ['garage' => $garage, ...$fees, 'total_fee' => $fees['rental_fee'] + $fees['charging_fee']];
+                $totalFee = $fees['charging_fee'] === null ? null : $fees['rental_fee'] + $fees['charging_fee'];
+
+                return ['garage' => $garage, ...$fees, 'total_fee' => $totalFee];
             });
 
         return ['end_date' => $endDate, 'garages' => $garages];
@@ -155,19 +158,32 @@ class RentalService
 
     /**
      * Compute the rental fee, plus the charging fee when an electric car is parked in an electric car garage.
+     * The charging fee is null when the battery data needed for it is still missing (only while quoting).
      *
-     * @return array{rental_fee: int, charging_fee: int}
+     * @return array{rental_fee: int, charging_fee: ?int}
      */
     private function fees(Garage $garage, RentalOrder $order): array
     {
-        $chargesBattery = $garage->type === GarageType::ElectricCar && $order->vehicleType->isElectric();
-
         return [
             'rental_fee' => $this->calculator->rentalFee($order->rentalType, $garage->daily_price, $order->days),
-            'charging_fee' => $chargesBattery
-                ? $this->calculator->chargingFee($order->batteryCapacityKwh, $order->batteryLeftKwh, $garage->charging_price_per_kwh)
-                : 0,
+            'charging_fee' => $this->chargingFee($garage, $order),
         ];
+    }
+
+    /**
+     * Get the fee to charge the battery to full: 0 unless an electric car is in an electric car garage,
+     * null when its battery data is still missing.
+     */
+    private function chargingFee(Garage $garage, RentalOrder $order): ?int
+    {
+        if ($garage->type !== GarageType::ElectricCar || ! $order->vehicleType->isElectric()) {
+            return 0;
+        }
+        if ($order->batteryCapacityKwh === null || $order->batteryLeftKwh === null) {
+            return null;
+        }
+
+        return $this->calculator->chargingFee($order->batteryCapacityKwh, $order->batteryLeftKwh, $garage->charging_price_per_kwh);
     }
 
     /**

@@ -35,7 +35,6 @@
                         <div class="mb-3">
                             <span class="form-label d-block">Kode Garasi</span>
                             <span class="fw-semibold" id="codePreview">–</span>
-                            <div class="form-text">Dibuat otomatis oleh sistem.</div>
                         </div>
 
                         <x-input name="daily_price" label="Harga Sewa Harian (Rp)" type="number" min="1" required/>

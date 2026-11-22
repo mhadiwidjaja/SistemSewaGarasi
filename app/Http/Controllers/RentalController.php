@@ -48,7 +48,8 @@ class RentalController extends Controller
 
     /**
      * Return the period, the daily limit and (once vehicle and garage type are chosen) the available
-     * garages with their fees, as JSON for the form. "garages" is null while the choice is incomplete.
+     * garages with their fees, as JSON for the form. "garages" is null while the choice is incomplete;
+     * a garage's "total_fee" is null while an electric car's battery data is missing.
      */
     public function quote(QuoteRentalRequest $request, RentalService $rentalService): JsonResponse
     {
@@ -65,7 +66,7 @@ class RentalController extends Controller
                 'daily_price' => Format::rupiah($option['garage']->daily_price).' / hari',
                 'rental_fee' => Format::rupiah($option['rental_fee']),
                 'charging_fee' => $option['charging_fee'] > 0 ? Format::rupiah($option['charging_fee']) : null,
-                'total_fee' => Format::rupiah($option['total_fee']),
+                'total_fee' => $option['total_fee'] === null ? null : Format::rupiah($option['total_fee']),
             ])->values(),
         ]);
     }

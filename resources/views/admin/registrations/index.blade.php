@@ -5,8 +5,7 @@
 @section('title', 'Verifikasi Pendaftar')
 
 @section('content')
-    <h1 class="h3 mb-1">Verifikasi Pendaftar</h1>
-    <p class="text-body-secondary mb-4">Periksa kesesuaian NIK sebelum menerima pendaftaran.</p>
+    <h1 class="h3 mb-4">Verifikasi Pendaftar</h1>
 
     <div class="card shadow-sm">
         @if ($pendingRenters->isEmpty())

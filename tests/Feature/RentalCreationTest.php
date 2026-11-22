@@ -318,6 +318,40 @@ class RentalCreationTest extends TestCase
         ]);
     }
 
+    /** Quote lists the garages for an electric car before its battery is filled in, without a total yet. */
+    public function test_quote_lists_garages_for_an_electric_car_before_its_battery_is_filled_in(): void
+    {
+        $electricGarage = Garage::factory()->electricCar()->create(['code' => 'E001', 'daily_price' => 75_000]);
+        $query = http_build_query([
+            'vehicle_type' => 'electric_car',
+            'rental_type' => 'daily',
+            'days' => 3,
+            'start_date' => '2026-11-21',
+            'garage_type' => 'electric_car',
+        ]);
+
+        $response = $this->actingAs($this->renter)->getJson("/rentals/quote?{$query}");
+
+        $response->assertOk()->assertJson([
+            'end_date' => '23/11/2026',
+            'garages' => [['id' => $electricGarage->id, 'rental_fee' => 'Rp 225.000', 'total_fee' => null]],
+        ]);
+    }
+
+    /** Saving an electric car rental still requires the battery data. */
+    public function test_saving_an_electric_car_rental_requires_the_battery_data(): void
+    {
+        $form = ['battery_capacity_kwh' => '', 'battery_left_kwh' => ''] + $this->electricCarForm($this->carGarage);
+
+        $response = $this->actingAs($this->renter)->post('/rentals', $form);
+
+        $response->assertSessionHasErrors([
+            'battery_capacity_kwh' => 'Kapasitas baterai wajib diisi.',
+            'battery_left_kwh' => 'Sisa baterai wajib diisi.',
+        ]);
+        $this->assertDatabaseCount('rentals', 0);
+    }
+
     /** Quote lists available garages with their total. */
     public function test_quote_lists_available_garages_with_their_total(): void
     {

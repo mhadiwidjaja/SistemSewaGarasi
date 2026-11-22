@@ -127,17 +127,23 @@
 
         const total = document.createElement('span');
         total.className = 'ms-auto fw-semibold';
-        total.textContent = garage.total_fee;
+        total.textContent = garage.total_fee ?? '–';
 
         label.append(radio, code, price, total);
         return label;
     }
 
-    /** Show the fee breakdown of the chosen garage, or the hint when none is chosen. */
+    /** Show the fee breakdown of the chosen garage, or a hint while no total can be shown yet. */
     function showFees(garage) {
-        document.getElementById('paymentHint').hidden = garage !== null;
-        document.getElementById('feeSummary').hidden = garage === null;
-        if (garage === null) {
+        const hint = document.getElementById('paymentHint');
+        const hasTotal = garage !== null && garage.total_fee !== null;
+
+        hint.textContent = garage === null
+            ? 'Pilih garasi untuk melihat total biaya.'
+            : 'Isi kapasitas dan sisa baterai untuk menghitung total biaya.';
+        hint.hidden = hasTotal;
+        document.getElementById('feeSummary').hidden = !hasTotal;
+        if (!hasTotal) {
             return;
         }
 
