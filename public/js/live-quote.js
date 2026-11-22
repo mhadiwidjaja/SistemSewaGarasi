@@ -27,10 +27,19 @@ window.LiveQuote = (() => {
     /**
      * Create a function that, after a short pause in typing, sends the form's text fields to `url`
      * and passes the JSON answer to onQuote(quote, isValid). A request still running is cancelled.
+     * No quote is sent once the form is submitted: a quote reaching the server after the save
+     * would use up the success message meant for the next page.
      */
     function requester(form, url, { onQuote, onFailure }) {
         let timer = null;
         let controller = null;
+        let isSubmitted = false;
+
+        form.addEventListener('submit', () => {
+            isSubmitted = true;
+            clearTimeout(timer);
+        });
+        window.addEventListener('pageshow', () => { isSubmitted = false; });
 
         async function send() {
             controller?.abort();
@@ -53,6 +62,9 @@ window.LiveQuote = (() => {
         }
 
         return () => {
+            if (isSubmitted) {
+                return;
+            }
             clearTimeout(timer);
             timer = setTimeout(send, DELAY_MS);
         };
