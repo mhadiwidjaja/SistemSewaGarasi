@@ -21,6 +21,7 @@ class ReportTest extends TestCase
 
     private ReportService $reports;
 
+    /** Prepare the data shared by the tests in this class. */
     protected function setUp(): void
     {
         parent::setUp();
@@ -48,7 +49,7 @@ class ReportTest extends TestCase
             ->create(['rental_fee' => 999_000]);
     }
 
-    /** FT23 */
+    /** FT23: Per month lists all 12 months with count and revenue. */
     public function test_per_month_lists_all_12_months_with_count_and_revenue(): void
     {
         $rows = $this->reports->perMonth(2026);
@@ -60,7 +61,7 @@ class ReportTest extends TestCase
         $this->assertSame(520_000, $rows->sum('revenue'));
     }
 
-    /** FT24 */
+    /** FT24: Per day lists every day of the month. */
     public function test_per_day_lists_every_day_of_the_month(): void
     {
         $rows = $this->reports->perDay(2026, 1);
@@ -71,7 +72,7 @@ class ReportTest extends TestCase
         $this->assertSame(2, $rows->sum('rental_count'));
     }
 
-    /** FT24 */
+    /** FT24: Per garage type covers all time. */
     public function test_per_garage_type_covers_all_time(): void
     {
         $rows = $this->reports->perGarageType()->keyBy('label');
@@ -82,7 +83,7 @@ class ReportTest extends TestCase
         $this->assertSame(220_000, $rows['Garasi Mobil Listrik']['revenue']);
     }
 
-    /** FT24 */
+    /** FT24: Per renter is sorted by revenue. */
     public function test_per_renter_is_sorted_by_revenue(): void
     {
         $rows = $this->reports->perRenter();
@@ -91,6 +92,7 @@ class ReportTest extends TestCase
         $this->assertSame(['label' => 'Budi', 'detail' => 'NIK 1111111111111111', 'rental_count' => 2, 'revenue' => 300_000], $rows[1]);
     }
 
+    /** Report page shows the selected tab with a total. */
     public function test_report_page_shows_the_selected_tab_with_a_total(): void
     {
         $admin = User::factory()->admin()->create();
@@ -101,6 +103,7 @@ class ReportTest extends TestCase
             ->assertSeeInOrder(['Januari', '2', 'Rp 300.000', 'Total', '3', 'Rp 520.000']);
     }
 
+    /** Month filter is accepted at the end of a long month. */
     public function test_month_filter_is_accepted_at_the_end_of_a_long_month(): void
     {
         $this->travelTo('2026-01-31');

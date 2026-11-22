@@ -9,11 +9,14 @@ use Illuminate\Http\Response;
 /**
  * For live quote requests: return the first validation error as JSON instead of redirecting,
  * together with the maximum daily days, so the form can always show an up-to-date hint.
- *
- * The using request must provide maxDailyDays().
  */
 trait RespondsWithQuoteErrors
 {
+    /**
+     * Get the longest daily period allowed for the entered start date.
+     */
+    abstract public function maxDailyDays(): int;
+
     /**
      * Return the first validation error as JSON.
      */

@@ -8,7 +8,8 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Creates the single admin account. All other data is entered through the application.
+ * Creates the single admin account (or resets it if it already exists).
+ * All other data is entered through the application.
  */
 class DatabaseSeeder extends Seeder
 {
@@ -17,12 +18,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
+        User::firstOrNew(['email' => 'admin@sewagarasi.test'])->forceFill([
             'name' => 'Administrator',
-            'email' => 'admin@sewagarasi.test',
             'password' => 'admin123',
             'role' => UserRole::Admin,
             'status' => RegistrationStatus::Approved,
-        ]);
+        ])->save();
     }
 }

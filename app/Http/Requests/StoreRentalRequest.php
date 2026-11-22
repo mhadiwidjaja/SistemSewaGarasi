@@ -24,7 +24,7 @@ class StoreRentalRequest extends RentalOrderRequest
             ],
             'vehicle_brand_type' => ['required', 'string', 'max:100'],
             'garage_id' => ['required', 'integer', 'exists:garages,id'],
-            'payment_proof' => PaymentProof::RULES,
+            'payment_proof' => PaymentProofRules::RULES,
         ];
     }
 
@@ -37,6 +37,7 @@ class StoreRentalRequest extends RentalOrderRequest
     {
         return parent::messages() + [
             'garage_id.required' => 'Pilih salah satu garasi yang tersedia.',
+            'payment_proof.max' => PaymentProofRules::TOO_LARGE_MESSAGE,
         ];
     }
 

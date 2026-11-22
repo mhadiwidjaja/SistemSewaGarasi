@@ -19,6 +19,9 @@ abstract class RentalOrderRequest extends FormRequest
     /** Battery capacity limit; matches the DECIMAL(6,2) column. */
     private const MAX_BATTERY_KWH = 9_999.99;
 
+    /** How far ahead a rental may start, so dates stay realistic and within the database range. */
+    private const MAX_START_DATE = 'today +1 year';
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -32,14 +35,14 @@ abstract class RentalOrderRequest extends FormRequest
             'vehicle_type' => ['required', Rule::enum(VehicleType::class)],
             'battery_capacity_kwh' => [
                 Rule::excludeIf(! $vehicleType?->isElectric()),
-                'required', 'numeric', 'gt:0', 'max:'.self::MAX_BATTERY_KWH,
+                'required', 'decimal:0,2', 'gt:0', 'max:'.self::MAX_BATTERY_KWH,
             ],
             'battery_left_kwh' => [
                 Rule::excludeIf(! $vehicleType?->isElectric()),
-                'required', 'numeric', 'min:0', 'lte:battery_capacity_kwh',
+                'required', 'decimal:0,2', 'min:0', 'lte:battery_capacity_kwh',
             ],
             'rental_type' => ['required', Rule::enum(RentalType::class)],
-            'start_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'start_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today', 'before_or_equal:'.self::MAX_START_DATE],
             'days' => [
                 Rule::excludeIf($this->rentalType() !== RentalType::Daily),
                 'required', 'integer', 'min:1', 'max:'.$this->maxDailyDays(),
@@ -62,6 +65,7 @@ abstract class RentalOrderRequest extends FormRequest
         return [
             'battery_left_kwh.lte' => 'Sisa baterai tidak boleh melebihi kapasitas baterai.',
             'start_date.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'start_date.before_or_equal' => 'Tanggal mulai paling lambat satu tahun dari hari ini.',
             'garage_type.in' => 'Jenis garasi tidak sesuai dengan jenis kendaraan.',
         ];
     }

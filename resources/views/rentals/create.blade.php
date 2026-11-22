@@ -3,6 +3,7 @@
 @use('App\Enums\GarageType')
 @use('App\Enums\RentalType')
 @use('App\Enums\VehicleType')
+@use('App\Http\Requests\PaymentProofRules')
 
 @section('title', 'Sewa Garasi Baru')
 
@@ -37,7 +38,7 @@
                         <div id="batteryFields" class="row" @if (! $showBattery) hidden @endif>
                             <div class="col-sm-6">
                                 <x-input name="battery_capacity_kwh" label="Kapasitas Baterai (kWh)" type="number"
-                                         step="0.01" min="0" :disabled="! $showBattery" required/>
+                                         step="0.01" min="0.01" :disabled="! $showBattery" required/>
                             </div>
                             <div class="col-sm-6">
                                 <x-input name="battery_left_kwh" label="Sisa Baterai (kWh)" type="number"
@@ -99,7 +100,8 @@
                             <dd class="col-5 text-end fs-5 fw-bold border-top pt-2 mb-0" id="totalFee"></dd>
                         </dl>
                         <x-input name="payment_proof" label="Bukti Pembayaran" type="file" accept="image/png,image/jpeg"
-                                 help="Gambar JPG atau PNG, maksimal 2 MB." required/>
+                                 :data-max-megabytes="PaymentProofRules::MAX_MEGABYTES"
+                                 help="Gambar JPG atau PNG, maksimal {{ PaymentProofRules::MAX_MEGABYTES }} MB." required/>
 
                         <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Simpan Sewa</button>
                     </div>

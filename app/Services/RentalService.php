@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\GarageType;
 use App\Enums\RentalType;
-use App\Enums\VehicleType;
 use App\Models\Garage;
 use App\Models\Rental;
 use App\Models\RentalExtension;
@@ -42,13 +41,17 @@ class RentalService
     /**
      * Preview an order: its end date and every available garage with the fees it would cost.
      *
-     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: int}>}
+     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: int, total_fee: int}>}
      */
     public function quote(RentalOrder $order): array
     {
         $endDate = $this->endDate($order);
         $garages = $this->availableGarages($order->garageType, $order->startDate, $endDate)
-            ->map(fn (Garage $garage) => ['garage' => $garage] + $this->fees($garage, $order));
+            ->map(function (Garage $garage) use ($order) {
+                $fees = $this->fees($garage, $order);
+
+                return ['garage' => $garage, ...$fees, 'total_fee' => $fees['rental_fee'] + $fees['charging_fee']];
+            });
 
         return ['end_date' => $endDate, 'garages' => $garages];
     }
@@ -66,7 +69,7 @@ class RentalService
 
         return DB::transaction(function () use ($renter, $order, $paymentProof, $endDate) {
             $garage = Garage::lockForUpdate()->findOrFail($order->garageId);
-            $this->ensureGarageFitsVehicle($garage, $order->vehicleType);
+            $this->ensureGarageMatchesOrder($garage, $order);
             $this->ensureGarageAvailable($garage, $order->startDate, $endDate);
 
             return $renter->rentals()->create([
@@ -92,14 +95,18 @@ class RentalService
      *
      * @param  int|null  $days  Number of days; required for daily, ignored for monthly.
      * @return array{start_date: CarbonImmutable, end_date: CarbonImmutable, fee: int}
+     *
+     * @throws ValidationException When the garage is already booked in the added period.
      */
     public function quoteExtension(Rental $rental, RentalType $type, ?int $days): array
     {
         $startDate = $rental->extensionStartDate();
+        $endDate = $this->calculator->endDate($type, $startDate, $days);
+        $this->ensureGarageFreeForExtension($rental->garage, $startDate, $endDate);
 
         return [
             'start_date' => $startDate,
-            'end_date' => $this->calculator->endDate($type, $startDate, $days),
+            'end_date' => $endDate,
             'fee' => $this->calculator->rentalFee($type, $rental->garage->daily_price, $days),
         ];
     }
@@ -116,9 +123,8 @@ class RentalService
     public function extendRental(Rental $rental, RentalType $type, ?int $days, UploadedFile $paymentProof): RentalExtension
     {
         return DB::transaction(function () use ($rental, $type, $days, $paymentProof) {
-            $garage = Garage::lockForUpdate()->findOrFail($rental->garage_id);
+            Garage::lockForUpdate()->findOrFail($rental->garage_id);
             $extension = $this->quoteExtension($rental, $type, $days);
-            $this->ensureGarageFreeForExtension($garage, $extension['start_date'], $extension['end_date']);
 
             $record = $rental->extensions()->create([
                 'rental_type' => $type,
@@ -159,13 +165,21 @@ class RentalService
     }
 
     /**
+     * The garage must fit the vehicle and be of the garage type the renter chose (whose fees were shown).
+     *
      * @throws ValidationException
      */
-    private function ensureGarageFitsVehicle(Garage $garage, VehicleType $vehicleType): void
+    private function ensureGarageMatchesOrder(Garage $garage, RentalOrder $order): void
     {
-        if (! in_array($garage->type, $vehicleType->allowedGarageTypes(), true)) {
+        if (! in_array($garage->type, $order->vehicleType->allowedGarageTypes(), true)) {
             throw ValidationException::withMessages([
-                'garage_id' => "{$garage->type->label()} tidak dapat digunakan untuk {$vehicleType->label()}.",
+                'garage_id' => "{$garage->type->label()} tidak dapat digunakan untuk {$order->vehicleType->label()}.",
+            ]);
+        }
+
+        if ($garage->type !== $order->garageType) {
+            throw ValidationException::withMessages([
+                'garage_id' => "Garasi {$garage->code} bukan {$order->garageType->label()}.",
             ]);
         }
     }

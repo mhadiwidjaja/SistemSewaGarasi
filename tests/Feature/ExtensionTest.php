@@ -14,7 +14,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
- * FT19–FT22: the admin extends a rental that runs today (S06, S07).
+ * FT19–FT22, FT29: the admin extends a rental that runs today (S06, S07).
  * An extension starts the day after the current end date and follows the rental rules.
  */
 class ExtensionTest extends TestCase
@@ -25,6 +25,7 @@ class ExtensionTest extends TestCase
 
     private Garage $garage;
 
+    /** Prepare the data shared by the tests in this class. */
     protected function setUp(): void
     {
         parent::setUp();
@@ -35,6 +36,7 @@ class ExtensionTest extends TestCase
         $this->garage = Garage::factory()->create(['code' => 'C001', 'daily_price' => 50_000]);
     }
 
+    /** Release the fixed test date. */
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
@@ -61,7 +63,7 @@ class ExtensionTest extends TestCase
         ]);
     }
 
-    /** FT19 */
+    /** FT19: List shows only rentals running today. */
     public function test_list_shows_only_rentals_running_today(): void
     {
         $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -73,7 +75,7 @@ class ExtensionTest extends TestCase
         $response->assertOk()->assertSee('C001')->assertDontSee('C002')->assertDontSee('C003');
     }
 
-    /** FT20 */
+    /** FT20: Daily extension is limited by the month it starts in. */
     public function test_daily_extension_is_limited_by_the_month_it_starts_in(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-31');
@@ -84,7 +86,7 @@ class ExtensionTest extends TestCase
         $this->assertSame('2026-01-31', $rental->fresh()->end_date->toDateString());
     }
 
-    /** FT21 */
+    /** FT21: Daily extension adds days from the day after the current end. */
     public function test_daily_extension_adds_days_from_the_day_after_the_current_end(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -101,7 +103,7 @@ class ExtensionTest extends TestCase
         $this->assertSame('2026-02-04', $rental->fresh()->end_date->toDateString());
     }
 
-    /** FT21 */
+    /** FT21: Monthly extension lasts the days of its start month and costs 25 days. */
     public function test_monthly_extension_lasts_the_days_of_its_start_month_and_costs_25_days(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -113,7 +115,7 @@ class ExtensionTest extends TestCase
         $this->assertSame(1_250_000, $extension->fee);
     }
 
-    /** FT22 */
+    /** FT22: Extension is refused when the garage is booked in the added days. */
     public function test_extension_is_refused_when_the_garage_is_booked_in_the_added_days(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -125,6 +127,7 @@ class ExtensionTest extends TestCase
         $this->assertSame(0, $rental->extensions()->count());
     }
 
+    /** Form shows the rental and when the extension starts. */
     public function test_form_shows_the_rental_and_when_the_extension_starts(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -136,6 +139,18 @@ class ExtensionTest extends TestCase
             ->assertSeeInOrder(['Mulai Perpanjangan', '31/01/2026', 'Harian', 'Bulanan', 'Maksimal 30 hari.']);
     }
 
+    /** FT29: Quote warns when the garage is booked in the added days. */
+    public function test_quote_warns_when_the_garage_is_booked_in_the_added_days(): void
+    {
+        $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
+        $this->rentalBetween('2026-02-02', '2026-02-10');
+
+        $response = $this->actingAs($this->admin)->getJson("/admin/extensions/{$rental->id}/quote?rental_type=daily&days=5");
+
+        $response->assertUnprocessable()->assertJson(['message' => 'Garasi C001 sudah dipesan pada periode tersebut.']);
+    }
+
+    /** Rental not running today cannot be extended. */
     public function test_rental_not_running_today_cannot_be_extended(): void
     {
         $upcoming = $this->rentalBetween('2026-01-25', '2026-01-30');
@@ -144,6 +159,7 @@ class ExtensionTest extends TestCase
         $this->extend($upcoming, ['rental_type' => 'daily', 'days' => 1])->assertNotFound();
     }
 
+    /** Quote shows new end date and remaining fee. */
     public function test_quote_shows_new_end_date_and_remaining_fee(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
@@ -158,6 +174,7 @@ class ExtensionTest extends TestCase
         ]);
     }
 
+    /** Extension counts in the renter's total. */
     public function test_extension_counts_in_the_renters_total(): void
     {
         $rental = $this->rentalBetween('2026-01-21', '2026-01-30');

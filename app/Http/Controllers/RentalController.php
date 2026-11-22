@@ -62,7 +62,7 @@ class RentalController extends Controller
                 'daily_price' => Format::rupiah($option['garage']->daily_price).' / hari',
                 'rental_fee' => Format::rupiah($option['rental_fee']),
                 'charging_fee' => $option['charging_fee'] > 0 ? Format::rupiah($option['charging_fee']) : null,
-                'total_fee' => Format::rupiah($option['rental_fee'] + $option['charging_fee']),
+                'total_fee' => Format::rupiah($option['total_fee']),
             ])->values(),
         ]);
     }

@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
  */
 class VehicleTypeTest extends TestCase
 {
-    /** UT11 */
+    /** UT11: Each vehicle fits only its allowed garage types. */
     public function test_each_vehicle_fits_only_its_allowed_garage_types(): void
     {
         $this->assertSame([GarageType::Bicycle], VehicleType::Bicycle->allowedGarageTypes());
@@ -20,7 +20,7 @@ class VehicleTypeTest extends TestCase
         $this->assertSame([GarageType::Car, GarageType::ElectricCar], VehicleType::ElectricCar->allowedGarageTypes());
     }
 
-    /** UT12 */
+    /** UT12: Plate number is required for every vehicle except bicycle. */
     public function test_plate_number_is_required_for_every_vehicle_except_bicycle(): void
     {
         $this->assertFalse(VehicleType::Bicycle->requiresPlateNumber());

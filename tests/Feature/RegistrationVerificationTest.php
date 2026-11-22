@@ -16,12 +16,14 @@ class RegistrationVerificationTest extends TestCase
 
     private User $admin;
 
+    /** Prepare the data shared by the tests in this class. */
     protected function setUp(): void
     {
         parent::setUp();
         $this->admin = User::factory()->admin()->create();
     }
 
+    /** List shows only pending renters. */
     public function test_list_shows_only_pending_renters(): void
     {
         $pending = User::factory()->pending()->create();
@@ -32,7 +34,7 @@ class RegistrationVerificationTest extends TestCase
         $response->assertOk()->assertSee($pending->nik)->assertDontSee($approved->nik);
     }
 
-    /** FT08 */
+    /** FT08: Approved renter can log in. */
     public function test_approved_renter_can_log_in(): void
     {
         $renter = User::factory()->pending()->create();
@@ -47,7 +49,7 @@ class RegistrationVerificationTest extends TestCase
         $this->assertAuthenticatedAs($renter);
     }
 
-    /** FT08 */
+    /** FT08: Rejected renter is marked rejected. */
     public function test_rejected_renter_is_marked_rejected(): void
     {
         $renter = User::factory()->pending()->create();
@@ -59,6 +61,7 @@ class RegistrationVerificationTest extends TestCase
         $this->assertSame(RegistrationStatus::Rejected, $renter->fresh()->status);
     }
 
+    /** A renter already decided cannot be decided again. */
     public function test_a_renter_already_decided_cannot_be_decided_again(): void
     {
         $renter = User::factory()->rejected()->create();

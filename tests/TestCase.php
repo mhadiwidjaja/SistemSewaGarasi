@@ -4,7 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
-abstract class TestCase extends BaseTestCase
-{
-    //
-}
+/**
+ * Base class of the feature tests: boots the Laravel application for each test.
+ */
+abstract class TestCase extends BaseTestCase {}

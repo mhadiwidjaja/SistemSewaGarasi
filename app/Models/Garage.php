@@ -59,7 +59,7 @@ class Garage extends Model
      */
     public function monthlyPrice(): int
     {
-        return $this->daily_price * RentalCalculator::MONTHLY_PRICE_MULTIPLIER;
+        return app(RentalCalculator::class)->monthlyPrice($this->daily_price);
     }
 
     /**

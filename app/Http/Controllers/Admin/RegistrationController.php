@@ -51,6 +51,7 @@ class RegistrationController extends Controller
     {
         abort_unless($user->isPendingRenter(), Response::HTTP_NOT_FOUND);
 
-        $user->update(['status' => $decision]);
+        $user->status = $decision;
+        $user->save();
     }
 }

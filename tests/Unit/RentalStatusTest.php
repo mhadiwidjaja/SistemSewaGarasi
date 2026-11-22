@@ -25,7 +25,7 @@ class RentalStatusTest extends TestCase
         ];
     }
 
-    /** UT14 */
+    /** UT14: Status is derived from today. */
     #[DataProvider('periods')]
     public function test_status_is_derived_from_today(string $start, string $end, RentalStatus $expected): void
     {

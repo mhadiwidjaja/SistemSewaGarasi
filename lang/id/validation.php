@@ -5,12 +5,12 @@
  * anything missing falls back to Laravel's built-in English messages.
  */
 return [
-    'after_or_equal' => ':Attribute tidak boleh sebelum :date.',
     'between' => [
         'numeric' => ':Attribute harus antara :min dan :max.',
     ],
     'confirmed' => 'Konfirmasi :attribute tidak cocok.',
     'date_format' => ':Attribute harus berupa tanggal yang valid.',
+    'decimal' => ':Attribute maksimal 2 angka di belakang koma.',
     'digits' => ':Attribute harus :digits digit angka.',
     'email' => ':Attribute harus berupa alamat email yang valid.',
     'enum' => ':Attribute yang dipilih tidak valid.',
@@ -19,11 +19,7 @@ return [
         'numeric' => ':Attribute harus lebih dari :value.',
     ],
     'image' => ':Attribute harus berupa gambar.',
-    'in' => ':Attribute yang dipilih tidak valid.',
     'integer' => ':Attribute harus berupa bilangan bulat.',
-    'lte' => [
-        'numeric' => ':Attribute tidak boleh lebih dari :value.',
-    ],
     'max' => [
         'file' => ':Attribute maksimal :max kilobyte.',
         'numeric' => ':Attribute maksimal :max.',

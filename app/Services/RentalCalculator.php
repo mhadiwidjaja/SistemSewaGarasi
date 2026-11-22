@@ -58,6 +58,17 @@ class RentalCalculator
     }
 
     /**
+     * Get the monthly rental price: 25 × the daily price.
+     *
+     * @param  int  $dailyPrice  Garage price per day in rupiah.
+     * @return int Price in rupiah.
+     */
+    public function monthlyPrice(int $dailyPrice): int
+    {
+        return self::MONTHLY_PRICE_MULTIPLIER * $dailyPrice;
+    }
+
+    /**
      * Get the rental fee: days × daily price for daily, or 25 × daily price for monthly.
      *
      * @param  RentalType  $type  Daily or monthly.
@@ -69,11 +80,9 @@ class RentalCalculator
      */
     public function rentalFee(RentalType $type, int $dailyPrice, ?int $days): int
     {
-        $chargedDays = $type === RentalType::Monthly
-            ? self::MONTHLY_PRICE_MULTIPLIER
-            : $this->requireDailyDays($days);
-
-        return $chargedDays * $dailyPrice;
+        return $type === RentalType::Monthly
+            ? $this->monthlyPrice($dailyPrice)
+            : $this->requireDailyDays($days) * $dailyPrice;
     }
 
     /**

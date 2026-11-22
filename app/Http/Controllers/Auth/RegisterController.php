@@ -28,11 +28,10 @@ class RegisterController extends Controller
      */
     public function register(RegisterRequest $request): RedirectResponse
     {
-        User::create([
-            ...$request->validated(),
-            'role' => UserRole::Renter,
-            'status' => RegistrationStatus::Pending,
-        ]);
+        $renter = new User($request->validated());
+        $renter->role = UserRole::Renter;
+        $renter->status = RegistrationStatus::Pending;
+        $renter->save();
 
         return redirect()->route('login')
             ->with('success', 'Pendaftaran berhasil. Akun Anda dapat digunakan setelah diverifikasi admin.');

@@ -34,6 +34,8 @@ class GarageService
     public function createBatch(GarageType $type, int $quantity, int $dailyPrice, ?int $chargingPricePerKwh): Collection
     {
         return DB::transaction(function () use ($type, $quantity, $dailyPrice, $chargingPricePerKwh) {
+            // Lock the existing garages of this type so two batches at the same moment cannot get the same codes.
+            Garage::where('type', $type)->lockForUpdate()->get(['id']);
             $this->ensureCodesAvailable($type, $quantity);
             $firstNumber = $this->nextNumber($type);
 

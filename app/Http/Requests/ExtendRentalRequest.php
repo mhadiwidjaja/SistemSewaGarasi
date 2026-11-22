@@ -14,6 +14,16 @@ class ExtendRentalRequest extends ExtensionRequest
      */
     public function rules(): array
     {
-        return parent::rules() + ['payment_proof' => PaymentProof::RULES];
+        return parent::rules() + ['payment_proof' => PaymentProofRules::RULES];
+    }
+
+    /**
+     * Get custom messages for validation errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return ['payment_proof.max' => PaymentProofRules::TOO_LARGE_MESSAGE];
     }
 }

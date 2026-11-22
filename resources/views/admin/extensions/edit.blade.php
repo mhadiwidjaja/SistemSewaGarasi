@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @use('App\Enums\RentalType')
+@use('App\Http\Requests\PaymentProofRules')
 @use('App\Support\Format')
 
 @section('title', 'Perpanjang Sewa '.$rental->garage->code)
@@ -75,7 +76,8 @@
                         </div>
 
                         <x-input name="payment_proof" label="Bukti Pembayaran" type="file" accept="image/png,image/jpeg"
-                                 help="Gambar JPG atau PNG, maksimal 2 MB." required/>
+                                 :data-max-megabytes="PaymentProofRules::MAX_MEGABYTES"
+                                 help="Gambar JPG atau PNG, maksimal {{ PaymentProofRules::MAX_MEGABYTES }} MB." required/>
 
                         <div class="d-flex gap-2 justify-content-end mt-4">
                             <a href="{{ route('admin.extensions.index') }}" class="btn btn-outline-secondary">Batal</a>

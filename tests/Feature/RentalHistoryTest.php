@@ -14,7 +14,7 @@ class RentalHistoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** FT18 */
+    /** FT18: Renter sees only their own rentals. */
     public function test_renter_sees_only_their_own_rentals(): void
     {
         $renter = User::factory()->create();
@@ -28,7 +28,7 @@ class RentalHistoryTest extends TestCase
             ->assertDontSee($otherRental->garage->code);
     }
 
-    /** FT18 */
+    /** FT18: Total includes charging and extension fees. */
     public function test_total_includes_charging_and_extension_fees(): void
     {
         $renter = User::factory()->create();
@@ -49,6 +49,7 @@ class RentalHistoryTest extends TestCase
         $response->assertSee('Rp 512.500')->assertSee('Diperpanjang');
     }
 
+    /** Empty history shows a message. */
     public function test_empty_history_shows_a_message(): void
     {
         $this->actingAs(User::factory()->create())

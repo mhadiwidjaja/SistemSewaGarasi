@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
  */
 class GarageTypeTest extends TestCase
 {
-    /** UT13 */
+    /** UT13: Code prefix is S for bicycle, C for car and E for electric car. */
     public function test_code_prefix_is_s_for_bicycle_c_for_car_and_e_for_electric_car(): void
     {
         $this->assertSame('S', GarageType::Bicycle->codePrefix());

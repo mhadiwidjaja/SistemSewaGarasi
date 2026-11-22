@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * FT10–FT17: availability and new rentals (S03). Today is fixed at 21/11/2026.
+ * FT10–FT17, FT25, FT28, FT30–FT32: availability and new rentals (S03). Today is fixed at 21/11/2026.
  */
 class RentalCreationTest extends TestCase
 {
@@ -24,6 +24,7 @@ class RentalCreationTest extends TestCase
 
     private Garage $carGarage;
 
+    /** Prepare the data shared by the tests in this class. */
     protected function setUp(): void
     {
         parent::setUp();
@@ -34,6 +35,7 @@ class RentalCreationTest extends TestCase
         $this->carGarage = Garage::factory()->create(['code' => 'C001', 'daily_price' => 50_000]);
     }
 
+    /** Release the fixed test date. */
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
@@ -77,6 +79,7 @@ class RentalCreationTest extends TestCase
         ]);
     }
 
+    /** Form opens with today and its daily limit. */
     public function test_form_opens_with_today_and_its_daily_limit(): void
     {
         $response = $this->actingAs($this->renter)->get('/rentals/create');
@@ -84,7 +87,7 @@ class RentalCreationTest extends TestCase
         $response->assertOk()->assertSee('value="2026-11-21"', false)->assertSee('Maksimal 29 hari.');
     }
 
-    /** FT10 */
+    /** FT10: Garage is unavailable only when periods overlap. */
     public function test_garage_is_unavailable_only_when_periods_overlap(): void
     {
         Rental::factory()->for($this->carGarage)->between('2026-11-21', '2026-11-23')->create();
@@ -97,7 +100,7 @@ class RentalCreationTest extends TestCase
         $this->assertContains('C001', $afterwards->pluck('code'));
     }
 
-    /** FT11 */
+    /** FT11: Motorcycle cannot choose a car garage type. */
     public function test_motorcycle_cannot_choose_a_car_garage_type(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['vehicle_type' => 'motorcycle']));
@@ -106,7 +109,7 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseCount('rentals', 0);
     }
 
-    /** FT11 */
+    /** FT11: Motorcycle cannot be placed in a car garage. */
     public function test_motorcycle_cannot_be_placed_in_a_car_garage(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm([
@@ -118,7 +121,7 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseCount('rentals', 0);
     }
 
-    /** FT12 */
+    /** FT12: Electric car in electric garage pays for charging to full. */
     public function test_electric_car_in_electric_garage_pays_for_charging_to_full(): void
     {
         $electricGarage = Garage::factory()->electricCar()->create(['daily_price' => 75_000]);
@@ -130,7 +133,7 @@ class RentalCreationTest extends TestCase
         $this->assertSame(112_500, $rental->charging_fee);
     }
 
-    /** FT12 */
+    /** FT12: Electric car in car garage pays no charging fee. */
     public function test_electric_car_in_car_garage_pays_no_charging_fee(): void
     {
         $this->actingAs($this->renter)->post('/rentals', $this->electricCarForm($this->carGarage));
@@ -138,7 +141,7 @@ class RentalCreationTest extends TestCase
         $this->assertSame(0, Rental::sole()->charging_fee);
     }
 
-    /** FT13 */
+    /** FT13: Start date cannot be in the past. */
     public function test_start_date_cannot_be_in_the_past(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['start_date' => '2026-11-20']));
@@ -146,7 +149,7 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['start_date' => 'Tanggal mulai tidak boleh sebelum hari ini.']);
     }
 
-    /** FT14 */
+    /** FT14: Daily rental may not reach the length of the start month. */
     public function test_daily_rental_may_not_reach_the_length_of_the_start_month(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm([
@@ -157,7 +160,7 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['days' => 'Jumlah hari maksimal 27.']);
     }
 
-    /** FT15 */
+    /** FT15: Bicycle needs no plate number. */
     public function test_bicycle_needs_no_plate_number(): void
     {
         $bicycleGarage = Garage::factory()->bicycle()->create();
@@ -173,7 +176,7 @@ class RentalCreationTest extends TestCase
         $this->assertNull(Rental::sole()->plate_number);
     }
 
-    /** FT15 */
+    /** FT15: Car needs a plate number. */
     public function test_car_needs_a_plate_number(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['plate_number' => '']));
@@ -181,7 +184,7 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['plate_number' => 'Nomor polisi wajib diisi.']);
     }
 
-    /** FT16 */
+    /** FT16: Battery left cannot exceed capacity. */
     public function test_battery_left_cannot_exceed_capacity(): void
     {
         $form = ['battery_left_kwh' => 61] + $this->electricCarForm($this->carGarage);
@@ -191,7 +194,7 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['battery_left_kwh' => 'Sisa baterai tidak boleh melebihi kapasitas baterai.']);
     }
 
-    /** FT17 */
+    /** FT17: Valid rental is saved and the garage becomes used. */
     public function test_valid_rental_is_saved_and_the_garage_becomes_used(): void
     {
         $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm());
@@ -208,6 +211,62 @@ class RentalCreationTest extends TestCase
         $this->assertFalse($this->carGarage->isAvailableBetween(CarbonImmutable::today(), CarbonImmutable::today()));
     }
 
+    /** FT25: Renter can rent more than one garage at the same time. */
+    public function test_renter_can_rent_more_than_one_garage_at_the_same_time(): void
+    {
+        $secondGarage = Garage::factory()->create(['code' => 'C002']);
+
+        $this->actingAs($this->renter)->post('/rentals', $this->rentalForm())->assertSessionHasNoErrors();
+        $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['garage_id' => $secondGarage->id]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(2, $this->renter->rentals()->activeOn(CarbonImmutable::today())->count());
+    }
+
+    /** FT28: Proof of payment must be a JPG or PNG of at most 2 MB. */
+    public function test_proof_of_payment_must_be_a_jpg_or_png_of_at_most_2_mb(): void
+    {
+        $document = UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf');
+        $largeImage = UploadedFile::fake()->create('bukti.png', 3 * 1024, 'image/png');
+
+        $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['payment_proof' => $document]))
+            ->assertSessionHasErrors(['payment_proof' => 'Bukti pembayaran harus berupa gambar.']);
+        $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['payment_proof' => $largeImage]))
+            ->assertSessionHasErrors(['payment_proof' => 'Bukti pembayaran maksimal 2 MB.']);
+        $this->assertDatabaseCount('rentals', 0);
+    }
+
+    /** FT30: Start date cannot be more than one year ahead. */
+    public function test_start_date_cannot_be_more_than_one_year_ahead(): void
+    {
+        $response = $this->actingAs($this->renter)->post('/rentals', $this->rentalForm(['start_date' => '2027-11-22']));
+
+        $response->assertSessionHasErrors(['start_date' => 'Tanggal mulai paling lambat satu tahun dari hari ini.']);
+    }
+
+    /** FT31: Garage must be of the selected garage type. */
+    public function test_garage_must_be_of_the_selected_garage_type(): void
+    {
+        $electricGarage = Garage::factory()->electricCar()->create(['code' => 'E001']);
+        $form = ['garage_type' => 'car', 'garage_id' => $electricGarage->id] + $this->electricCarForm($this->carGarage);
+
+        $response = $this->actingAs($this->renter)->post('/rentals', $form);
+
+        $response->assertSessionHasErrors(['garage_id' => 'Garasi E001 bukan Garasi Mobil.']);
+        $this->assertDatabaseCount('rentals', 0);
+    }
+
+    /** FT32: Battery values have at most two decimals. */
+    public function test_battery_values_have_at_most_two_decimals(): void
+    {
+        $form = ['battery_capacity_kwh' => 60.555] + $this->electricCarForm($this->carGarage);
+
+        $response = $this->actingAs($this->renter)->post('/rentals', $form);
+
+        $response->assertSessionHasErrors(['battery_capacity_kwh' => 'Kapasitas baterai maksimal 2 angka di belakang koma.']);
+    }
+
+    /** Monthly rental costs 25 days and lasts the start month. */
     public function test_monthly_rental_costs_25_days_and_lasts_the_start_month(): void
     {
         $this->actingAs($this->renter)->post('/rentals', $this->rentalForm([
@@ -221,6 +280,7 @@ class RentalCreationTest extends TestCase
         $this->assertSame(1_250_000, $rental->rental_fee);
     }
 
+    /** Booked garage cannot be rented again. */
     public function test_booked_garage_cannot_be_rented_again(): void
     {
         Rental::factory()->for($this->carGarage)->between('2026-11-22', '2026-11-30')->create();
@@ -230,6 +290,7 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['garage_id' => 'Garasi C001 sudah tidak tersedia, silakan pilih garasi lain.']);
     }
 
+    /** Quote lists available garages with their total. */
     public function test_quote_lists_available_garages_with_their_total(): void
     {
         $query = http_build_query([
@@ -249,6 +310,7 @@ class RentalCreationTest extends TestCase
         ]);
     }
 
+    /** Quote explains an invalid input and still gives the daily limit. */
     public function test_quote_explains_an_invalid_input_and_still_gives_the_daily_limit(): void
     {
         $query = http_build_query([

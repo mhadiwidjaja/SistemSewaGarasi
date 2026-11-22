@@ -19,13 +19,14 @@ class GarageBatchTest extends TestCase
 
     private User $admin;
 
+    /** Prepare the data shared by the tests in this class. */
     protected function setUp(): void
     {
         parent::setUp();
         $this->admin = User::factory()->admin()->create();
     }
 
-    /** FT01 */
+    /** FT01: First bicycle garages are numbered from S001. */
     public function test_first_bicycle_garages_are_numbered_from_s001(): void
     {
         $response = $this->actingAs($this->admin)->post('/admin/garages', [
@@ -40,7 +41,7 @@ class GarageBatchTest extends TestCase
         $this->assertSame(0, Garage::whereNotNull('charging_price_per_kwh')->count());
     }
 
-    /** FT02 */
+    /** FT02: Numbering continues from existing garages of the same type. */
     public function test_numbering_continues_from_existing_garages_of_the_same_type(): void
     {
         $service = new GarageService;
@@ -53,7 +54,7 @@ class GarageBatchTest extends TestCase
         $this->assertSame(60_000, $created->first()->daily_price);
     }
 
-    /** FT03 */
+    /** FT03: Batch that exceeds 999 garages of a type is rejected. */
     public function test_batch_that_exceeds_999_garages_of_a_type_is_rejected(): void
     {
         (new GarageService)->createBatch(GarageType::Car, 990, 50_000, null);
@@ -68,7 +69,7 @@ class GarageBatchTest extends TestCase
         $this->assertSame(990, Garage::count());
     }
 
-    /** FT04 */
+    /** FT04: Electric car garage requires a charging price. */
     public function test_electric_car_garage_requires_a_charging_price(): void
     {
         $response = $this->actingAs($this->admin)->post('/admin/garages', [
@@ -81,7 +82,7 @@ class GarageBatchTest extends TestCase
         $this->assertSame(0, Garage::count());
     }
 
-    /** FT04 */
+    /** FT04: Electric car garage stores its charging price. */
     public function test_electric_car_garage_stores_its_charging_price(): void
     {
         $this->actingAs($this->admin)->post('/admin/garages', [
@@ -94,6 +95,7 @@ class GarageBatchTest extends TestCase
         $this->assertSame(2_500, Garage::firstWhere('code', 'E001')->charging_price_per_kwh);
     }
 
+    /** Charging price is ignored for other garage types. */
     public function test_charging_price_is_ignored_for_other_garage_types(): void
     {
         $this->actingAs($this->admin)->post('/admin/garages', [
@@ -106,6 +108,7 @@ class GarageBatchTest extends TestCase
         $this->assertNull(Garage::firstWhere('code', 'C001')->charging_price_per_kwh);
     }
 
+    /** List filters by type and shows today's status. */
     public function test_list_filters_by_type_and_shows_todays_status(): void
     {
         $rentedGarage = Garage::factory()->create(['code' => 'C001']);

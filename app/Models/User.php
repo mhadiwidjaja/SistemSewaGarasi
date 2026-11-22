@@ -20,15 +20,18 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory;
 
-    /** @var list<string> */
+    /**
+     * Attributes a form may fill. Role and status are left out on purpose: they are only set by the
+     * application itself, so a renter can never make themselves admin or approve themselves.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'nik',
         'name',
         'phone',
         'email',
         'password',
-        'role',
-        'status',
     ];
 
     /** @var list<string> */

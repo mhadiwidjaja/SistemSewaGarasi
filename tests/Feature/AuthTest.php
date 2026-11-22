@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * FT05–FT07: renter registration and login.
+ * FT05–FT07, FT26, FT34: renter registration and login.
  */
 class AuthTest extends TestCase
 {
@@ -30,7 +30,7 @@ class AuthTest extends TestCase
         ];
     }
 
-    /** FT05 */
+    /** FT05: Valid registration creates a pending renter. */
     public function test_valid_registration_creates_a_pending_renter(): void
     {
         $response = $this->post('/register', $this->validRegistration());
@@ -44,7 +44,7 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    /** FT06 */
+    /** FT06: Registration rejects a NIK that is not 16 digits. */
     public function test_registration_rejects_a_nik_that_is_not_16_digits(): void
     {
         $response = $this->post('/register', ['nik' => '35780123'] + $this->validRegistration());
@@ -53,7 +53,7 @@ class AuthTest extends TestCase
         $this->assertDatabaseCount('users', 0);
     }
 
-    /** FT06 */
+    /** FT06: Registration rejects a duplicate NIK or email. */
     public function test_registration_rejects_a_duplicate_nik_or_email(): void
     {
         User::factory()->create(['nik' => '3578012345678901', 'email' => 'budi@example.com']);
@@ -66,7 +66,7 @@ class AuthTest extends TestCase
         ]);
     }
 
-    /** FT06 */
+    /** FT06: Registration rejects a mismatched password confirmation. */
     public function test_registration_rejects_a_mismatched_password_confirmation(): void
     {
         $response = $this->post('/register', ['password_confirmation' => 'lainnya123'] + $this->validRegistration());
@@ -74,7 +74,17 @@ class AuthTest extends TestCase
         $response->assertSessionHasErrors(['password' => 'Konfirmasi kata sandi tidak cocok.']);
     }
 
-    /** FT07 */
+    /** FT26: Registration cannot choose its own role or status. */
+    public function test_registration_cannot_choose_its_own_role_or_status(): void
+    {
+        $this->post('/register', ['role' => 'admin', 'status' => 'approved'] + $this->validRegistration());
+
+        $user = User::firstWhere('nik', '3578012345678901');
+        $this->assertSame(UserRole::Renter, $user->role);
+        $this->assertSame(RegistrationStatus::Pending, $user->status);
+    }
+
+    /** FT07: Pending renter cannot log in. */
     public function test_pending_renter_cannot_log_in(): void
     {
         $renter = User::factory()->pending()->create();
@@ -85,7 +95,7 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    /** FT07 */
+    /** FT07: Rejected renter cannot log in. */
     public function test_rejected_renter_cannot_log_in(): void
     {
         $renter = User::factory()->rejected()->create();
@@ -96,7 +106,7 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    /** FT07 */
+    /** FT07: Wrong password is refused. */
     public function test_wrong_password_is_refused(): void
     {
         $renter = User::factory()->create();
@@ -107,6 +117,20 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
+    /** FT34: Login is blocked for a minute after five attempts. */
+    public function test_login_is_blocked_for_a_minute_after_five_attempts(): void
+    {
+        $renter = User::factory()->create();
+
+        foreach (range(1, 5) as $attempt) {
+            $this->post('/login', ['email' => $renter->email, 'password' => 'salah']);
+        }
+
+        $this->post('/login', ['email' => $renter->email, 'password' => 'password'])->assertTooManyRequests();
+        $this->assertGuest();
+    }
+
+    /** Approved users land on their role home page. */
     public function test_approved_users_land_on_their_role_home_page(): void
     {
         $renter = User::factory()->create();
