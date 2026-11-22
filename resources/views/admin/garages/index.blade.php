@@ -29,7 +29,9 @@
 
     <div class="card shadow-sm border-top-0 rounded-top-0">
         @if ($garages->isEmpty())
-            <div class="card-body text-body-secondary">Belum ada garasi. Klik "Buat Garasi" untuk menambahkan.</div>
+            <div class="card-body text-body-secondary">
+                Belum ada {{ $selectedType?->label() ?? 'garasi' }}. Klik "Buat Garasi" untuk menambahkan.
+            </div>
         @else
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">

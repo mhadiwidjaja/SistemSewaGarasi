@@ -3,7 +3,6 @@
 @use('App\Enums\GarageType')
 @use('App\Enums\RentalType')
 @use('App\Enums\VehicleType')
-@use('App\Http\Requests\PaymentProofRules')
 
 @section('title', 'Sewa Garasi Baru')
 
@@ -65,7 +64,7 @@
                         </div>
                         <div>
                             <span class="form-label d-block">Tanggal Selesai</span>
-                            <span class="fw-semibold" id="endDate">–</span>
+                            <span class="fw-semibold" id="endDate" aria-live="polite">–</span>
                             <div class="form-text">Dihitung otomatis.</div>
                         </div>
                     </div>
@@ -76,14 +75,16 @@
                         <h2 class="h5 mb-3">3. Pilih Garasi</h2>
                         <x-radio-group name="garage_type" label="Jenis Garasi" :options="GarageType::cases()"
                                        id="garageTypeField" :hidden="$oldVehicle === null"/>
-                        <span class="form-label d-block">Garasi Tersedia</span>
-                        <p class="text-body-secondary mb-0" id="garageMessage">
-                            Pilih jenis kendaraan dan jenis garasi untuk melihat garasi yang tersedia.
-                        </p>
-                        <div class="list-group overflow-auto" id="garageOptions" style="max-height: 20rem"></div>
-                        @error('garage_id')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <fieldset>
+                            <legend class="form-label fs-6 mb-2 float-none" id="garageListLabel">Garasi Tersedia</legend>
+                            <p class="text-body-secondary mb-0" id="garageMessage" aria-live="polite">
+                                Pilih jenis kendaraan dan jenis garasi untuk melihat garasi yang tersedia.
+                            </p>
+                            <div class="list-group overflow-auto" id="garageOptions" style="max-height: 20rem"></div>
+                            @error('garage_id')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </fieldset>
                     </div>
                 </section>
 
@@ -91,7 +92,7 @@
                     <div class="card-body p-4">
                         <h2 class="h5 mb-3">4. Pembayaran</h2>
                         <p class="text-body-secondary" id="paymentHint">Pilih garasi untuk melihat total biaya.</p>
-                        <dl class="row mb-3" id="feeSummary" hidden>
+                        <dl class="row mb-3" id="feeSummary" aria-live="polite" hidden>
                             <dt class="col-7 fw-normal">Biaya Sewa</dt>
                             <dd class="col-5 text-end mb-1" id="rentalFee"></dd>
                             <dt class="col-7 fw-normal" data-charging-row>Biaya Pengisian Daya</dt>
@@ -99,9 +100,7 @@
                             <dt class="col-7 fs-5 border-top pt-2">Total Biaya</dt>
                             <dd class="col-5 text-end fs-5 fw-bold border-top pt-2 mb-0" id="totalFee"></dd>
                         </dl>
-                        <x-input name="payment_proof" label="Bukti Pembayaran" type="file" accept="image/png,image/jpeg"
-                                 :data-max-megabytes="PaymentProofRules::MAX_MEGABYTES"
-                                 help="Gambar JPG atau PNG, maksimal {{ PaymentProofRules::MAX_MEGABYTES }} MB." required/>
+                        <x-payment-proof-input/>
 
                         <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Simpan Sewa</button>
                     </div>

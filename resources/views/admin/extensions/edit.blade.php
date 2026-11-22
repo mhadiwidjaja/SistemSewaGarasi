@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @use('App\Enums\RentalType')
-@use('App\Http\Requests\PaymentProofRules')
 @use('App\Support\Format')
 
 @section('title', 'Perpanjang Sewa '.$rental->garage->code)
@@ -61,13 +60,13 @@
 
                         <div class="mb-3">
                             <span class="form-label d-block">Tanggal Selesai Baru</span>
-                            <span class="fw-semibold" id="endDate">–</span>
+                            <span class="fw-semibold" id="endDate" aria-live="polite">–</span>
                             @error('end_date')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-baseline border-top pt-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-baseline border-top pt-3 mb-3" aria-live="polite">
                             <span>
                                 <span class="fs-5">Sisa Biaya</span>
                                 <span class="small text-body-secondary d-block" id="feeBreakdown"></span>
@@ -75,11 +74,9 @@
                             <span class="fs-5 fw-bold" id="fee">–</span>
                         </div>
 
-                        <x-input name="payment_proof" label="Bukti Pembayaran" type="file" accept="image/png,image/jpeg"
-                                 :data-max-megabytes="PaymentProofRules::MAX_MEGABYTES"
-                                 help="Gambar JPG atau PNG, maksimal {{ PaymentProofRules::MAX_MEGABYTES }} MB." required/>
+                        <x-payment-proof-input/>
 
-                        <div class="d-flex gap-2 justify-content-end mt-4">
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end mt-4">
                             <a href="{{ route('admin.extensions.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary px-4">Simpan Perpanjangan</button>
                         </div>

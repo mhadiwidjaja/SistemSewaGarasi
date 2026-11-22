@@ -39,13 +39,19 @@ class RentalService
     }
 
     /**
-     * Preview an order: its end date and every available garage with the fees it would cost.
+     * Preview an order: its end date and, once the vehicle and garage type are chosen,
+     * every available garage with the fees it would cost.
      *
-     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: int, total_fee: int}>}
+     * @return array{end_date: CarbonImmutable, garages: Collection<int, array{garage: Garage, rental_fee: int, charging_fee: int, total_fee: int}>|null}
      */
     public function quote(RentalOrder $order): array
     {
         $endDate = $this->endDate($order);
+
+        if ($order->vehicleType === null || $order->garageType === null) {
+            return ['end_date' => $endDate, 'garages' => null];
+        }
+
         $garages = $this->availableGarages($order->garageType, $order->startDate, $endDate)
             ->map(function (Garage $garage) use ($order) {
                 $fees = $this->fees($garage, $order);

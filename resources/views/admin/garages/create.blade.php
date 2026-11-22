@@ -51,7 +51,7 @@
                                      min="1" :disabled="! $isElectric" required/>
                         </div>
 
-                        <div class="d-flex gap-2 justify-content-end mt-4">
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end mt-4">
                             <a href="{{ route('admin.garages.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary px-4">Buat Garasi</button>
                         </div>

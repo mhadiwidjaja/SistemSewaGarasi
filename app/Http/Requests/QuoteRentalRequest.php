@@ -8,4 +8,12 @@ namespace App\Http\Requests;
 class QuoteRentalRequest extends RentalOrderRequest
 {
     use RespondsWithQuoteErrors;
+
+    /**
+     * The quote already shows the rental period while the vehicle and garage type are still empty.
+     */
+    protected function choiceRule(): string
+    {
+        return 'nullable';
+    }
 }

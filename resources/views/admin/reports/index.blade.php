@@ -11,7 +11,7 @@
     <ul class="nav nav-tabs">
         @foreach (ReportType::cases() as $type)
             <li class="nav-item">
-                <a href="{{ route('admin.reports.index', ['type' => $type->value]) }}"
+                <a href="{{ route('admin.reports.index', ['type' => $type->value, 'year' => $year, 'month' => $month->format('Y-m')]) }}"
                    @class(['nav-link', 'active' => $reportType === $type])
                    @if ($reportType === $type) aria-current="page" @endif>{{ $type->label() }}</a>
             </li>
@@ -30,7 +30,7 @@
                                    @class(['form-control', 'is-invalid' => $errors->has('year')])>
                         @else
                             <label for="month" class="form-label">Bulan</label>
-                            <input type="month" id="month" name="month" value="{{ $month->format('Y-m') }}"
+                            <input type="month" id="month" name="month" value="{{ $month->format('Y-m') }}" placeholder="YYYY-MM"
                                    @class(['form-control', 'is-invalid' => $errors->has('month')])>
                         @endif
                     </div>

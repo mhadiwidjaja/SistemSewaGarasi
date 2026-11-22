@@ -87,6 +87,19 @@ class RentalCreationTest extends TestCase
         $response->assertOk()->assertSee('value="2026-11-21"', false)->assertSee('Maksimal 29 hari.');
     }
 
+    /** After a failed save the form shows an error alert and asks to choose the proof again. */
+    public function test_form_after_a_failed_save_asks_to_choose_the_proof_again(): void
+    {
+        $response = $this->actingAs($this->renter)
+            ->from('/rentals/create')
+            ->followingRedirects()
+            ->post('/rentals', $this->rentalForm(['plate_number' => '']));
+
+        $response->assertSee('Periksa kembali isian yang ditandai.')
+            ->assertSee('Pilih ulang file bukti pembayaran.')
+            ->assertSee('Nomor polisi wajib diisi.');
+    }
+
     /** FT10: Garage is unavailable only when periods overlap. */
     public function test_garage_is_unavailable_only_when_periods_overlap(): void
     {
@@ -290,6 +303,21 @@ class RentalCreationTest extends TestCase
         $response->assertSessionHasErrors(['garage_id' => 'Garasi C001 sudah tidak tersedia, silakan pilih garasi lain.']);
     }
 
+    /** Quote shows the rental period before the vehicle and garage type are chosen. */
+    public function test_quote_shows_the_period_before_vehicle_and_garage_type_are_chosen(): void
+    {
+        $query = http_build_query(['rental_type' => 'monthly', 'start_date' => '2026-12-05']);
+
+        $response = $this->actingAs($this->renter)->getJson("/rentals/quote?{$query}");
+
+        $response->assertOk()->assertExactJson([
+            'max_days' => 30,
+            'start_date' => '05/12/2026',
+            'end_date' => '04/01/2027',
+            'garages' => null,
+        ]);
+    }
+
     /** Quote lists available garages with their total. */
     public function test_quote_lists_available_garages_with_their_total(): void
     {
@@ -325,6 +353,7 @@ class RentalCreationTest extends TestCase
 
         $response->assertUnprocessable()->assertExactJson([
             'message' => 'Jumlah hari maksimal 29.',
+            'field' => 'days',
             'max_days' => 29,
         ]);
     }

@@ -47,16 +47,19 @@ class RentalController extends Controller
     }
 
     /**
-     * Return the end date, the daily limit and the available garages with their fees, as JSON for the form.
+     * Return the period, the daily limit and (once vehicle and garage type are chosen) the available
+     * garages with their fees, as JSON for the form. "garages" is null while the choice is incomplete.
      */
     public function quote(QuoteRentalRequest $request, RentalService $rentalService): JsonResponse
     {
-        $quote = $rentalService->quote($request->order());
+        $order = $request->order();
+        $quote = $rentalService->quote($order);
 
         return response()->json([
             'max_days' => $request->maxDailyDays(),
+            'start_date' => Format::date($order->startDate),
             'end_date' => Format::date($quote['end_date']),
-            'garages' => $quote['garages']->map(fn (array $option) => [
+            'garages' => $quote['garages']?->map(fn (array $option) => [
                 'id' => $option['garage']->id,
                 'code' => $option['garage']->code,
                 'daily_price' => Format::rupiah($option['garage']->daily_price).' / hari',

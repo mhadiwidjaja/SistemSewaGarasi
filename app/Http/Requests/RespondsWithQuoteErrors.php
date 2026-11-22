@@ -8,7 +8,8 @@ use Illuminate\Http\Response;
 
 /**
  * For live quote requests: return the first validation error as JSON instead of redirecting,
- * together with the maximum daily days, so the form can always show an up-to-date hint.
+ * with the field it belongs to (so the form can mark that field) and the maximum daily days
+ * (so the form can always show an up-to-date hint).
  */
 trait RespondsWithQuoteErrors
 {
@@ -24,6 +25,7 @@ trait RespondsWithQuoteErrors
     {
         throw new HttpResponseException(response()->json([
             'message' => $validator->errors()->first(),
+            'field' => $validator->errors()->keys()[0],
             'max_days' => $this->maxDailyDays(),
         ], Response::HTTP_UNPROCESSABLE_ENTITY));
     }

@@ -4,18 +4,19 @@
  * A submit button with data-confirm="<question>" opens the pop-up instead of submitting.
  * Its form is submitted only when the user clicks the action button.
  * Optional: data-confirm-label (action text) and data-confirm-variant (Bootstrap colour, e.g. "danger").
+ * Keyboard focus moves to the action button when the pop-up opens and back to the clicked button when it closes.
  */
 (() => {
     const modalElement = document.getElementById('confirmModal');
     const modal = new bootstrap.Modal(modalElement);
     const message = document.getElementById('confirmModalMessage');
     const actionButton = document.getElementById('confirmModalAction');
-    let formToSubmit = null;
+    let openingButton = null;
 
     document.querySelectorAll('[data-confirm]').forEach((button) => {
         button.addEventListener('click', (event) => {
             event.preventDefault();
-            formToSubmit = button.form;
+            openingButton = button;
             message.textContent = button.dataset.confirm;
             actionButton.textContent = button.dataset.confirmLabel ?? 'Ya';
             actionButton.className = `btn btn-${button.dataset.confirmVariant ?? 'primary'}`;
@@ -24,8 +25,11 @@
         });
     });
 
+    modalElement.addEventListener('shown.bs.modal', () => actionButton.focus());
+    modalElement.addEventListener('hidden.bs.modal', () => openingButton?.focus());
+
     actionButton.addEventListener('click', () => {
         actionButton.disabled = true;
-        formToSubmit.submit();
+        openingButton.form.submit();
     });
 })();

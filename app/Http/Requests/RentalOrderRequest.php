@@ -32,7 +32,7 @@ abstract class RentalOrderRequest extends FormRequest
         $vehicleType = $this->vehicleType();
 
         return [
-            'vehicle_type' => ['required', Rule::enum(VehicleType::class)],
+            'vehicle_type' => [$this->choiceRule(), Rule::enum(VehicleType::class)],
             'battery_capacity_kwh' => [
                 Rule::excludeIf(! $vehicleType?->isElectric()),
                 'required', 'decimal:0,2', 'gt:0', 'max:'.self::MAX_BATTERY_KWH,
@@ -48,7 +48,7 @@ abstract class RentalOrderRequest extends FormRequest
                 'required', 'integer', 'min:1', 'max:'.$this->maxDailyDays(),
             ],
             'garage_type' => [
-                'required',
+                $this->choiceRule(),
                 Rule::enum(GarageType::class),
                 Rule::in(array_column($vehicleType?->allowedGarageTypes() ?? [], 'value')),
             ],
@@ -71,6 +71,15 @@ abstract class RentalOrderRequest extends FormRequest
     }
 
     /**
+     * Whether the vehicle type and garage type must be chosen. Saving needs them; the live quote
+     * overrides this so it can already show the rental period before they are chosen.
+     */
+    protected function choiceRule(): string
+    {
+        return 'required';
+    }
+
+    /**
      * Get the longest daily rental allowed for the entered start date (today if it isn't a valid date yet).
      */
     public function maxDailyDays(): int
@@ -88,7 +97,7 @@ abstract class RentalOrderRequest extends FormRequest
         $input = $this->validated();
 
         return new RentalOrder(
-            vehicleType: VehicleType::from($input['vehicle_type']),
+            vehicleType: isset($input['vehicle_type']) ? VehicleType::from($input['vehicle_type']) : null,
             plateNumber: $input['plate_number'] ?? null,
             vehicleBrandType: $input['vehicle_brand_type'] ?? null,
             batteryCapacityKwh: isset($input['battery_capacity_kwh']) ? (float) $input['battery_capacity_kwh'] : null,
@@ -96,7 +105,7 @@ abstract class RentalOrderRequest extends FormRequest
             rentalType: RentalType::from($input['rental_type']),
             startDate: CarbonImmutable::createFromFormat('Y-m-d', $input['start_date'])->startOfDay(),
             days: isset($input['days']) ? (int) $input['days'] : null,
-            garageType: GarageType::from($input['garage_type']),
+            garageType: isset($input['garage_type']) ? GarageType::from($input['garage_type']) : null,
             garageId: isset($input['garage_id']) ? (int) $input['garage_id'] : null,
         );
     }

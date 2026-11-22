@@ -78,7 +78,7 @@ class ExtensionController extends Controller
         );
 
         return redirect()->route('admin.extensions.index')->with('success', sprintf(
-            'Sewa garasi %s diperpanjang sampai %s. Biaya tambahan %s.',
+            'Sewa garasi %s diperpanjang sampai %s. Sisa biaya %s sudah dibayar.',
             $rental->garage->code,
             Format::date($extension->new_end_date),
             Format::rupiah($extension->fee),

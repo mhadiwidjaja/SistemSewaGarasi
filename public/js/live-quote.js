@@ -4,6 +4,8 @@
  */
 window.LiveQuote = (() => {
     const DELAY_MS = 250;
+    const HTTP_UNAUTHORIZED = 401;
+    const SESSION_EXPIRED_MESSAGE = 'Sesi Anda telah berakhir. Silakan muat ulang halaman dan masuk kembali.';
 
     /** Show or hide a block of fields; hidden fields are disabled so they are not submitted. */
     function toggleFields(container, visible) {
@@ -38,6 +40,10 @@ window.LiveQuote = (() => {
                     headers: { Accept: 'application/json' },
                     signal: controller.signal,
                 });
+                if (response.status === HTTP_UNAUTHORIZED) {
+                    onQuote({ message: SESSION_EXPIRED_MESSAGE }, false);
+                    return;
+                }
                 onQuote(await response.json(), response.ok);
             } catch (error) {
                 if (error.name !== 'AbortError') {
@@ -60,5 +66,35 @@ window.LiveQuote = (() => {
         }
     }
 
-    return { toggleFields, requester, showMaxDays };
+    /** Remove the error marks a previous quote put on fields. */
+    function clearFieldErrors(form) {
+        form.querySelectorAll('[data-quote-error]').forEach((feedback) => feedback.remove());
+        form.querySelectorAll('[data-quote-invalid]').forEach((input) => {
+            input.classList.remove('is-invalid');
+            input.removeAttribute('data-quote-invalid');
+        });
+    }
+
+    /**
+     * Mark a field the user already filled in as invalid and show the message under it.
+     * Returns false (nothing marked) for an empty or unknown field, so the caller shows the message elsewhere.
+     */
+    function showFieldError(form, field, message) {
+        const input = form.elements[field];
+        if (!(input instanceof HTMLInputElement) || input.value === '') {
+            return false;
+        }
+
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.dataset.quoteError = '';
+        feedback.textContent = message;
+
+        input.classList.add('is-invalid');
+        input.dataset.quoteInvalid = '';
+        input.after(feedback);
+        return true;
+    }
+
+    return { toggleFields, requester, showMaxDays, clearFieldErrors, showFieldError };
 })();

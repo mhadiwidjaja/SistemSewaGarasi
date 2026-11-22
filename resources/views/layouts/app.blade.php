@@ -55,6 +55,9 @@
     @if (session('success'))
         <div class="alert alert-success" role="status">{{ session('success') }}</div>
     @endif
+    @if ($errors->any())
+        <div class="alert alert-danger" role="alert">Periksa kembali isian yang ditandai.</div>
+    @endif
 
     @yield('content')
 </main>

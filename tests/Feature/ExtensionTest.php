@@ -93,7 +93,7 @@ class ExtensionTest extends TestCase
 
         $this->extend($rental, ['rental_type' => 'daily', 'days' => 5])
             ->assertRedirect('/admin/extensions')
-            ->assertSessionHas('success', 'Sewa garasi C001 diperpanjang sampai 04/02/2026. Biaya tambahan Rp 250.000.');
+            ->assertSessionHas('success', 'Sewa garasi C001 diperpanjang sampai 04/02/2026. Sisa biaya Rp 250.000 sudah dibayar.');
 
         $extension = $rental->extensions()->sole();
         $this->assertSame(RentalType::Daily, $extension->rental_type);
