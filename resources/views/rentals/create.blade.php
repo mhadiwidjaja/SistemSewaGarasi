@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
+@use('App\Enums\GarageType')
 @use('App\Enums\RentalType')
 @use('App\Enums\VehicleType')
 
@@ -11,7 +12,6 @@
         $isDaily = old('rental_type', RentalType::Daily->value) === RentalType::Daily->value;
         $showPlate = $oldVehicle?->requiresPlateNumber() ?? true;
         $showBattery = $oldVehicle?->isElectric() ?? false;
-        $labels = fn (array $cases) => collect($cases)->mapWithKeys(fn ($case) => [$case->value => $case->label()]);
     @endphp
 
     <div class="row justify-content-center">
@@ -28,7 +28,7 @@
                 <section class="card shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h2 class="h5 mb-3">1. Data Kendaraan</h2>
-                        <x-radio-group name="vehicle_type" label="Jenis Kendaraan" :options="$labels($vehicleTypes)"/>
+                        <x-radio-group name="vehicle_type" label="Jenis Kendaraan" :options="VehicleType::cases()"/>
                         <div id="plateNumberField" @if (! $showPlate) hidden @endif>
                             <x-input name="plate_number" label="Nomor Polisi" placeholder="B 1234 XYZ"
                                      :disabled="! $showPlate" required/>
@@ -50,7 +50,7 @@
                 <section class="card shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h2 class="h5 mb-3">2. Data Sewa</h2>
-                        <x-radio-group name="rental_type" label="Jenis Sewa" :options="$labels($rentalTypes)"
+                        <x-radio-group name="rental_type" label="Jenis Sewa" :options="RentalType::cases()"
                                        :selected="RentalType::Daily->value"/>
                         <div class="row">
                             <div class="col-sm-6" id="daysField" @if (! $isDaily) hidden @endif>
@@ -73,12 +73,13 @@
                 <section class="card shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h2 class="h5 mb-3">3. Pilih Garasi</h2>
-                        <x-radio-group name="garage_type" label="Jenis Garasi" :options="$labels($garageTypes)"/>
+                        <x-radio-group name="garage_type" label="Jenis Garasi" :options="GarageType::cases()"
+                                       id="garageTypeField" :hidden="$oldVehicle === null"/>
                         <span class="form-label d-block">Garasi Tersedia</span>
                         <p class="text-body-secondary mb-0" id="garageMessage">
                             Pilih jenis kendaraan dan jenis garasi untuk melihat garasi yang tersedia.
                         </p>
-                        <div class="list-group" id="garageOptions"></div>
+                        <div class="list-group overflow-auto" id="garageOptions" style="max-height: 20rem"></div>
                         @error('garage_id')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

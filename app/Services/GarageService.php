@@ -17,6 +17,7 @@ class GarageService
     /** Codes have 3 digits, so each type can have at most 999 garages. */
     public const MAX_GARAGES_PER_TYPE = 999;
 
+    /** Number of digits after the type prefix in a garage code (S001). */
     public const CODE_DIGITS = 3;
 
     /**
@@ -66,7 +67,7 @@ class GarageService
     /**
      * Build a garage code, e.g. Car + 10 → "C010".
      */
-    public function formatCode(GarageType $type, int $number): string
+    private function formatCode(GarageType $type, int $number): string
     {
         return $type->codePrefix().str_pad((string) $number, self::CODE_DIGITS, '0', STR_PAD_LEFT);
     }

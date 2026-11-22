@@ -46,7 +46,6 @@ class GarageController extends Controller
     public function create(GarageService $garageService): View
     {
         return view('admin.garages.create', [
-            'types' => GarageType::cases(),
             'nextNumbers' => $this->perType(fn (GarageType $type) => $garageService->nextNumber($type)),
             'remainingCodes' => $this->perType(fn (GarageType $type) => $garageService->remainingCodes($type)),
             'codePrefixes' => $this->perType(fn (GarageType $type) => $type->codePrefix()),
@@ -61,12 +60,11 @@ class GarageController extends Controller
     public function store(StoreGarageBatchRequest $request, GarageService $garageService): RedirectResponse
     {
         $type = $request->garageType();
-        $chargingPrice = $request->validated('charging_price_per_kwh');
         $garages = $garageService->createBatch(
             $type,
             $request->integer('quantity'),
             $request->integer('daily_price'),
-            $chargingPrice === null ? null : (int) $chargingPrice,
+            $request->chargingPricePerKwh(),
         );
 
         $codes = $garages->count() === 1

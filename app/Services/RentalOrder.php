@@ -15,6 +15,9 @@ use Carbon\CarbonImmutable;
  */
 final readonly class RentalOrder
 {
+    /**
+     * Create the order. Null means the field does not apply (see the class description).
+     */
     public function __construct(
         public VehicleType $vehicleType,
         public ?string $plateNumber,

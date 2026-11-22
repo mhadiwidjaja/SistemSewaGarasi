@@ -23,9 +23,7 @@
                         <dt class="col-sm-4 fw-normal text-body-secondary">Penyewa</dt>
                         <dd class="col-sm-8">{{ $rental->renter->name }}</dd>
                         <dt class="col-sm-4 fw-normal text-body-secondary">Kendaraan</dt>
-                        <dd class="col-sm-8">
-                            {{ $rental->vehicle_brand_type }} · {{ $rental->vehicle_type->label() }}{{ $rental->plate_number ? ' · '.$rental->plate_number : '' }}
-                        </dd>
+                        <dd class="col-sm-8"><x-vehicle :rental="$rental"/></dd>
                         <dt class="col-sm-4 fw-normal text-body-secondary">Jenis Sewa</dt>
                         <dd class="col-sm-8">{{ $rental->rental_type->label() }}</dd>
                         <dt class="col-sm-4 fw-normal text-body-secondary">Periode</dt>
@@ -52,8 +50,8 @@
                             <span class="fw-semibold">{{ Format::date($rental->extensionStartDate()) }}</span>
                         </div>
 
-                        <x-radio-group name="rental_type" label="Jenis Perpanjangan" :selected="RentalType::Daily->value"
-                                       :options="collect($rentalTypes)->mapWithKeys(fn ($type) => [$type->value => $type->label()])"/>
+                        <x-radio-group name="rental_type" label="Jenis Perpanjangan" :options="RentalType::cases()"
+                                       :selected="RentalType::Daily->value"/>
 
                         <div id="daysField" class="col-sm-6" @if (! $isDaily) hidden @endif>
                             <x-input name="days" label="Jumlah Hari" type="number" min="1" value="1"

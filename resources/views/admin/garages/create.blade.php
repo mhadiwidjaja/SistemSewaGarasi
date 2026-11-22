@@ -25,8 +25,8 @@
                           data-electric-type="{{ GarageType::ElectricCar->value }}">
                         @csrf
 
-                        <x-radio-group name="type" label="Jenis Garasi" :selected="$selectedType"
-                                       :options="collect($types)->mapWithKeys(fn ($type) => [$type->value => $type->label()])"/>
+                        <x-radio-group name="type" label="Jenis Garasi" :options="GarageType::cases()"
+                                       :selected="$selectedType"/>
 
                         <x-input name="quantity" label="Jumlah Garasi" type="number" min="1"
                                  :max="$remainingCodes[$selectedType]"

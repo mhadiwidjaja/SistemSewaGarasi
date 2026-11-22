@@ -22,8 +22,11 @@ use Illuminate\Validation\ValidationException;
 class RentalService
 {
     /** Folder on the private disk where payment proof images are stored. */
-    public const PAYMENT_PROOF_FOLDER = 'payment-proofs';
+    private const PAYMENT_PROOF_FOLDER = 'payment-proofs';
 
+    /**
+     * @param  RentalCalculator  $calculator  The rental date and fee formulas.
+     */
     public function __construct(private RentalCalculator $calculator) {}
 
     /**

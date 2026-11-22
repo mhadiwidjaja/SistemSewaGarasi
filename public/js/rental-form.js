@@ -31,8 +31,10 @@
         },
     });
 
+    /** Show the fields and garage types that fit the chosen vehicle; garage types stay hidden until one is chosen. */
     function updateVehicleFields() {
         const rules = vehicleRules[checkedValue('vehicle_type')];
+        document.getElementById('garageTypeField').hidden = !rules;
         if (!rules) {
             return;
         }

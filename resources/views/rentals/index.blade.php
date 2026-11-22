@@ -48,12 +48,7 @@
                         <tr @class(['table-success' => $rental->id === session('newRentalId')])>
                             <td class="fw-semibold">{{ $rental->garage->code }}</td>
                             <td>{{ $rental->garage->type->label() }}</td>
-                            <td>
-                                {{ $rental->vehicle_brand_type }}
-                                <div class="small text-body-secondary">
-                                    {{ $rental->vehicle_type->label() }}{{ $rental->plate_number ? ' · '.$rental->plate_number : '' }}
-                                </div>
-                            </td>
+                            <td><x-vehicle :rental="$rental"/></td>
                             <td>{{ $rental->rental_type->label() }}</td>
                             <td>{{ Format::date($rental->start_date) }}</td>
                             <td>

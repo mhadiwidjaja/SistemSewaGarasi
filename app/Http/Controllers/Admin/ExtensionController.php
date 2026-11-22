@@ -44,7 +44,6 @@ class ExtensionController extends Controller
 
         return view('admin.extensions.edit', [
             'rental' => $rental->load(['garage', 'renter']),
-            'rentalTypes' => RentalType::cases(),
             'maxDailyDays' => $calculator->maxDailyDays($rental->extensionStartDate()),
         ]);
     }

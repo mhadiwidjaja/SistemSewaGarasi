@@ -40,4 +40,14 @@ class StoreGarageBatchRequest extends FormRequest
     {
         return GarageType::from($this->validated('type'));
     }
+
+    /**
+     * Get the electricity price per kWh for an electric car garage batch, or null for other types.
+     */
+    public function chargingPricePerKwh(): ?int
+    {
+        $price = $this->validated('charging_price_per_kwh');
+
+        return $price === null ? null : (int) $price;
+    }
 }

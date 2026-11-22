@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GarageType;
-use App\Enums\RentalType;
 use App\Enums\VehicleType;
 use App\Http\Requests\QuoteRentalRequest;
 use App\Http\Requests\StoreRentalRequest;
@@ -42,9 +40,6 @@ class RentalController extends Controller
         $today = CarbonImmutable::today();
 
         return view('rentals.create', [
-            'vehicleTypes' => VehicleType::cases(),
-            'rentalTypes' => RentalType::cases(),
-            'garageTypes' => GarageType::cases(),
             'vehicleRules' => $this->vehicleRules(),
             'today' => $today->toDateString(),
             'maxDailyDays' => $calculator->maxDailyDays($today),

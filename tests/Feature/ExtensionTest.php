@@ -125,6 +125,17 @@ class ExtensionTest extends TestCase
         $this->assertSame(0, $rental->extensions()->count());
     }
 
+    public function test_form_shows_the_rental_and_when_the_extension_starts(): void
+    {
+        $rental = $this->rentalBetween('2026-01-21', '2026-01-30');
+
+        $response = $this->actingAs($this->admin)->get("/admin/extensions/{$rental->id}/edit");
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Toyota Avanza', 'Mobil · B 1234 XYZ', '21/01/2026 – 30/01/2026'])
+            ->assertSeeInOrder(['Mulai Perpanjangan', '31/01/2026', 'Harian', 'Bulanan', 'Maksimal 30 hari.']);
+    }
+
     public function test_rental_not_running_today_cannot_be_extended(): void
     {
         $upcoming = $this->rentalBetween('2026-01-25', '2026-01-30');

@@ -35,11 +35,11 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                     <tr>
-                        <th scope="col">Kode</th>
+                        <th scope="col">Kode Garasi</th>
                         <th scope="col">Jenis Garasi</th>
                         <th scope="col" class="text-end">Harga Harian</th>
                         <th scope="col" class="text-end">Harga Bulanan</th>
-                        <th scope="col" class="text-end">Harga Pengisian per kWh</th>
+                        <th scope="col" class="text-end">Harga Pengisian Daya per kWh</th>
                         <th scope="col">Status Hari Ini</th>
                     </tr>
                     </thead>
