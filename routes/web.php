@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ExtensionController;
 use App\Http\Controllers\Admin\GarageController;
 use App\Http\Controllers\Admin\RegistrationController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RentalController;
@@ -48,4 +49,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/extensions/{rental}/edit', [ExtensionController::class, 'edit'])->name('extensions.edit');
     Route::get('/extensions/{rental}/quote', [ExtensionController::class, 'quote'])->name('extensions.quote');
     Route::put('/extensions/{rental}', [ExtensionController::class, 'update'])->name('extensions.update');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });

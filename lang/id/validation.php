@@ -6,6 +6,9 @@
  */
 return [
     'after_or_equal' => ':Attribute tidak boleh sebelum :date.',
+    'between' => [
+        'numeric' => ':Attribute harus antara :min dan :max.',
+    ],
     'confirmed' => 'Konfirmasi :attribute tidak cocok.',
     'date_format' => ':Attribute harus berupa tanggal yang valid.',
     'digits' => ':Attribute harus :digits digit angka.',
@@ -46,6 +49,7 @@ return [
         'email' => 'email',
         'garage_id' => 'garasi',
         'garage_type' => 'jenis garasi',
+        'month' => 'bulan',
         'name' => 'nama lengkap',
         'nik' => 'NIK',
         'password' => 'kata sandi',
@@ -58,5 +62,6 @@ return [
         'type' => 'jenis garasi',
         'vehicle_brand_type' => 'merek & tipe',
         'vehicle_type' => 'jenis kendaraan',
+        'year' => 'tahun',
     ],
 ];
